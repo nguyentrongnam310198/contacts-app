@@ -1,0 +1,31 @@
+{
+  "common": {
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "close": "Đóng",
+    "loading": "Đang tải...",
+    "no_data": "Không có dữ liệu"
+  },
+  "profile": {
+    "title": "Hồ sơ cá nhân",
+    "edit_title": "Chỉnh sửa thông tin",
+    "first_name": "Họ",
+    "last_name": "Tên",
+    "dob": "Ngày sinh",
+    "email": "Email",
+    "dark_mode": "Giao diện tối",
+    "logout": "Đăng xuất",
+    "change_avatar": "Đổi ảnh đại diện",
+    "camera": "Chụp ảnh",
+    "gallery": "Chọn từ thư viện"
+  },
+  "qr": {
+    "modal_title": "Mã QR Cá Nhân",
+    "scan_hint": "Quét mã để chia sẻ thông tin",
+    "no_data": "Chưa có dữ liệu để tạo mã"
+  },
+   "tabs": {
+    "home_tab": "Trang chủ",
+    "profile_tab": "Tôi"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "loading": "Loading...",
+    "no_data": "No data available"
+  },
+  "profile": {
+    "title": "My Profile",
+    "edit_title": "Edit Profile",
+    "first_name": "First Name",
+    "last_name": "Last Name",
+    "dob": "Date of Birth",
+    "email": "Email",
+    "dark_mode": "Dark Mode",
+    "logout": "Logout",
+    "change_avatar": "Change Avatar",
+    "camera": "Take Photo",
+    "gallery": "Choose from Library"
+  },
+  "qr": {
+    "modal_title": "Personal QR Code",
+    "scan_hint": "Scan to share information",
+    "no_data": "No data to generate QR"
+  },
+  "tabs": {
+    "home_tab": "Home",
+    "profile_tab": "Me"
+  }
+}

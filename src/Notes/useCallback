@@ -1,0 +1,29 @@
+import { useState, useCallback } from "react";
+
+
+
+//==component child==
+const Child = React.memo(({ onClick }) => {  //react.memo để so sánh chỉ render lại nếu props thay đổi
+  console.log("Child render");
+  return <button onClick={onClick}>Click</button>;
+});
+
+//==App là component cha - quản lý state==
+export default function App() {  
+  const [count, setCount] = useState(0);
+
+  const handleClick = useCallback(() => {  //useCallback: ghi nhớ hàm handleClick
+    console.log("Clicked");
+  }, []);  //[]  --> count thay đổi --> render lại App nhưng handleClick không thay đổi
+
+
+  //==> Logic: dù App render lại bao nhiêu lần -> handleClick vẫn giữ nguyên tham chiếu ban đầu -> Child không render lại
+
+  return (
+    <>
+      <p>Count: {count}</p>
+      <button onClick={() => setCount(count + 1)}>+</button>
+      <Child onClick={handleClick} />
+    </>
+  );
+}
