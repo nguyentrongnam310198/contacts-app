@@ -26,20 +26,20 @@ const AvatarPickerModal = ({ visible, onClose, onCamera, onGallery, colors }: Av
                     <Text style={styles.modalTitle}>Chọn ảnh đại diện</Text>
                     <View style={styles.modalButtonGroup}>
                         <AppButton
-                            tittle="Chụp ảnh"
+                            title="Chụp ảnh"
                             onPress={onCamera}
                             backgroundColor={APP_COLOR.BLUE_LIGHT}
                             textStyle={styles.modalBtnText}
                         />
                         <AppButton
-                            tittle="Chọn từ thư viện"
+                            title="Chọn từ thư viện"
                             onPress={onGallery}
                             backgroundColor={APP_COLOR.BLUE_LIGHT}
                             textStyle={styles.modalBtnText}
                         />
                     </View>
                     <AppButton
-                        tittle="Đóng"
+                        title="Đóng"
                         onPress={onClose}
                         backgroundColor={colors.card}
                         borderWidth={1}

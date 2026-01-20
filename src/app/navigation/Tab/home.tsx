@@ -1,12 +1,13 @@
 import React, { useRef, useState, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, TextInput, ScrollView, Image, FlatList, TouchableOpacity, Dimensions
+  View, Text, StyleSheet, TextInput, ScrollView, Image, FlatList, TouchableOpacity, Dimensions,
+  Pressable
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-// import BottomTabs from '../navigation/bottom_tabs';
+// import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
-
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@/types/route'
 
 //----------------------------------------------------------------------------------------------------------
 
@@ -36,11 +37,15 @@ const deals = [
   
 ];
 
+type HomeNavProp = NativeStackNavigationProp<RootStackParamList, 'Tab'>;
+    //type cho biến navigation
+    //giúp TS biết chính xác navigation này đi được screen nào, nhận params gì
+    //VD: navigation.navigate('Search', { keyword: 'pizza' }); ✅
 
 
 const HomeScreen = () => {
 
-  const navigation = useNavigation();
+    const navigation = useNavigation<HomeNavProp>();
 
 
   const { width } = Dimensions.get('window');  //Lấy kích thước màn hình: Cung cấp chiều rộng và chiều cao thực tế của "window" (vùng cửa sổ ứng dụng) và "screen" (toàn bộ màn hình thiết bị).
@@ -58,6 +63,21 @@ const HomeScreen = () => {
     return () => clearInterval(timer);
   }, [bannerIndex]);
 
+  // Xử lý search
+    const [keyword, setKeyword] = useState('');
+
+  const handleSearch = () => {
+    
+    if (!keyword.trim()) return;
+
+    navigation.navigate('search', {
+      keyword: keyword.trim(),
+      //tham số thứ 2:
+      //       + keyword trái: tên field gửi sang screen khác
+      //       + keyword phải: biến state chứa keyword khi user nhập
+      //       + .trim(): xóa khoảng trắng trước và sau
+    });
+    };
 //----------------------------------------------------------------------------------------------------------
 
   return (
@@ -74,8 +94,18 @@ const HomeScreen = () => {
         {/* Search */}
         <View style={styles.searchWrapper}>
             <Ionicons name="search" size={20} color="#666" />
-            <TextInput style={styles.input} placeholder="Tìm kiếm" />
-            <Ionicons name="options-outline" size={20} color="#666" />
+            <TextInput 
+                style={styles.input} 
+                placeholder="Tìm kiếm" 
+                value={keyword}
+                onChangeText={setKeyword}
+            />
+            <Pressable
+                onPress={handleSearch}
+            >
+            <Ionicons name="options-outline" size={20} color="#666"
+            />
+            </Pressable>
         </View>
 
         {/* Stories */}

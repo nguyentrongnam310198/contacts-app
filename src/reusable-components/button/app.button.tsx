@@ -4,18 +4,22 @@ import { Button, Text, Spinner, ButtonProps } from "tamagui";
 
 // Kế thừa ButtonProps của Tamagui
 interface IProps extends ButtonProps {
-    tittle: string;
+    title: string;
     onPress: () => void;
     icons?: any;
     loading?: boolean;
+    borderWidth?: number; 
+    borderColor?: string; 
     textStyle?: StyleProp<TextStyle>;
     backgroundColor: any;
-    bg: any;
+    bg?: string;
+    [key: string]: any; // Dòng này cho phép nhận thêm bất kỳ thuộc tính nào khác như width, height...
 }
 
 const AppButton = (props: IProps) => {
+    // props nhận tất cả giá trị từ Iprops
     const {
-        tittle,
+        title,
         onPress,
         icons,
         loading = false,
@@ -23,9 +27,13 @@ const AppButton = (props: IProps) => {
         backgroundColor,
         bg,
         ...rest
-    } = props;
+    } = props;  //Bóc tách: Bạn lấy các props quan trọng (title, loading, bg) ra để xử lý logic riêng ngay tại component này.
 
     const activeBg = backgroundColor || bg || undefined;
+    // Kiểm tra backgroundColor trước.
+    // Nếu không có, kiểm tra bg.
+    // Nếu cả hai đều không có, để là undefined để Tamagui dùng màu mặc định của Theme.
+    // Mục đích: Giúp component hoạt động ổn định dù bạn dùng tên prop đầy đủ hay viết tắt.
 
     return (
         <Button
@@ -52,7 +60,7 @@ const AppButton = (props: IProps) => {
                 color={"$color"}
                 style={textStyle}
             >
-                {tittle}
+                {title}
             </Text>
         </Button>
     )

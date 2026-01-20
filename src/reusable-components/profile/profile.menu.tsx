@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Switch, Pressable, Modal, TouchableOpacity } fr
 import MaterialIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import QRCode from 'react-native-qrcode-svg';
 import InforCard from '../card/info.card';
-import AppButton from '../button/share.button';
+import AppButton from '../button/app.button';
 import { APP_COLOR } from '../../utils/constants/constants';
 import { ThemeColors } from '../theme/themeContext';
 import { useTranslation } from 'react-i18next';
@@ -112,7 +112,7 @@ const ProfileMenu = ({ user, onEditPress, isDarkTheme, toggleTheme, onLogout, co
 
 
             <AppButton
-                tittle={t('profile.logout')}
+                title={t('profile.logout')}
                 onPress={onLogout}
                 backgroundColor={APP_COLOR.BLUE_LIGHT}
                 textStyle={{ fontWeight: 'bold' }}
@@ -149,7 +149,7 @@ const ProfileMenu = ({ user, onEditPress, isDarkTheme, toggleTheme, onLogout, co
                         <Text style={styles.modalNote}>{t('qr.scan_hint')}</Text>
 
                         <AppButton
-                            tittle={t('common.close')}
+                            title={t('common.close')}
                             onPress={() => setQrModalVisible(false)}
                             backgroundColor={APP_COLOR.BLUE_LIGHT}
                             textStyle={{ fontWeight: 'bold', color: 'white' }}

@@ -6,7 +6,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import Ionicons from 'react-native-vector-icons/Ionicons';  //https://ionic.io/ionicons
 import { StyleSheet, Keyboard } from "react-native";
 import { Picker } from '@react-native-picker/picker';
-import HomeScreen from "../navigation/BottomTab/home";
+import HomeScreen from "../../navigation/Tab/home";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { TouchableWithoutFeedback } from 'react-native';
 import Icon from "react-native-vector-icons/Ionicons";

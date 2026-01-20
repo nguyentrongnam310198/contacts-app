@@ -13,6 +13,8 @@ declare module 'react-native-heroicons/solid';
 declare module 'react-native-heroicons/mini';
 
 
-declare module '*.ttf'
+declare module '*.ttf';
 
 declare module 'react-native-vector-icons/FontAwesome';
+
+declare module 'lodash';

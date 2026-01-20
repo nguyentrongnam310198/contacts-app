@@ -45,7 +45,7 @@ const navigation = useNavigation<LoginScreenNavigationProp>();
             });
             
             setTimeout(() => {
-            navigation.navigate('MainTabs')
+            navigation.navigate('Tab')
             }, 1000)
         }
     }

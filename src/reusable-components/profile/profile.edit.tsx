@@ -146,13 +146,13 @@ const EditProfileForm = ({ user, onSave, onCancel, colors }: EditProfileFormProp
 
                     <View style={styles.buttonGroup}>
                         <AppButton
-                            tittle={t('common.save')}
+                            title={t('common.save')}
                             onPress={() => handleSubmit()}
                             backgroundColor={APP_COLOR.BLUE_LIGHT}
                             textStyle={{ fontWeight: 'bold', }}
                         />
                         <AppButton
-                            tittle={t('common.cancel')}
+                            title={t('common.cancel')}
                             onPress={onCancel}
                             backgroundColor={colors.card}
                             borderWidth={1}
