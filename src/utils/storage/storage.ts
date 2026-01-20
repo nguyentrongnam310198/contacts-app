@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export enum StorageKeys {
     ACCESS_TOKEN = 'access_token',
     USER_INFO = 'user_info',
+    CONTACTS = 'contacts',
 }
 
 const StorageService = {

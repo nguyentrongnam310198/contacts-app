@@ -3,7 +3,8 @@ type RootStackParamList = {
     home: undefined,
     Tab: undefined,
     login: undefined,
-    profile: undefined | {id: number, title: string};
+    addcontact: undefined | {id: number, title: string};
+    detail: { user: any } | undefined;
     //truyền data: obj hoặc undefined (không truyền)
 };
 

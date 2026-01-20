@@ -1,33 +1,58 @@
 import { useState } from "react";
 import { Formik } from 'formik';
 import * as Yup from 'yup';
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Image, Modal } from "react-native";
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Ionicons from 'react-native-vector-icons/Ionicons';  //https://ionic.io/ionicons
 import { StyleSheet, Keyboard } from "react-native";
 import { Picker } from '@react-native-picker/picker';
-import HomeScreen from "../../navigation/Tab/home";
+import HomeScreen from "./home";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { TouchableWithoutFeedback } from 'react-native';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import Icon from "react-native-vector-icons/Ionicons";
-import { Alert } from "react-native";
+import { Alert, Dimensions} from "react-native";
+import { Button } from "tamagui";
+import StorageService, { StorageKeys } from "../../utils/storage/storage";
 
 
 //-----------------------------------------------------------------------------------
 
+const AddContactScreen = () => {
 
-const ProfileScreen = () => {
+    const { width } = Dimensions.get('window'); 
+    
+
+    const navigation = useNavigation<NavigationProp<any>>();
+    const [avatarUri, setAvatarUri] = useState<string | null>(null);
+    const [showImageModal, setShowImageModal] = useState(false);
+
+    const handlePickImage = async (type: 'camera' | 'library') => {
+        const options: any = { mediaType: 'photo', quality: 0.8 };
+        try {
+            if (type === 'library') {
+                const res: any = await launchImageLibrary(options);
+                const asset = res?.assets?.[0];
+                if (asset?.uri) setAvatarUri(asset.uri);
+            } else {
+                const res: any = await launchCamera(options);
+                const asset = res?.assets?.[0];
+                if (asset?.uri) setAvatarUri(asset.uri);
+            }
+        } catch (e) {
+            console.error('Image pick error', e);
+            Alert.alert('Lỗi', 'Không thể lấy ảnh');
+        } finally {
+            setShowImageModal(false);
+        }
+    };
 
     //==Khai báo giá trị ban đầu cho form==
     const initialValues = {
         name: '',
         phonenumber: '',
         email: '',
-        adddress: '',
-        gender: 'Nam',
-        dob_day: '',
-        dob_month: '',
-        dob_year: '',
+        address: ''
     };
 
     //==Định nghĩa quy tắc kiểm tra dữ liệu (validate) cho từng trường==
@@ -42,18 +67,17 @@ const ProfileScreen = () => {
         //required(): bắt buộc phải nhập, nếu để trống sẽ thông báo (' ')
         //.matches(): hàm kiểm tra, trong case này là biểu thức chính quy
         
-
         email: Yup.string().email('Email không hợp lệ').required('Vui lòng nhập email'),
         adddress: Yup.string().required('Vui lòng nhập địa chỉ'),
-        gender: Yup.string().required('Chọn giới tính'),
-        dob_day: Yup.string().matches(/^\d{2}$/, 'Ngày không hợp lệ').required('Nhập ngày'),
-        dob_month: Yup.string().matches(/^\d{2}$/, 'Tháng không hợp lệ').required('Nhập tháng'),
-        dob_year: Yup.string().matches(/^\d{4}$/, 'Năm không hợp lệ').required('Nhập năm'),
     });
+
+
+
+//----------------------------------------------------------------------------------------------------------
 
     return (
         <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-            <KeyboardAwareScrollView
+            <KeyboardAwareScrollView  /* giúp tự động cuộn khi bàn phím hiện lên, tránh che khuất ô input */
                 style={{ flex: 1, backgroundColor: '#f5f6fa' }}
                 contentContainerStyle={{ flexGrow: 1 }}
                 enableOnAndroid={true}
@@ -62,18 +86,56 @@ const ProfileScreen = () => {
                 <Formik
                     initialValues={initialValues}
                     validationSchema={validationSchema}
-                    onSubmit={values => {
-                        // Xử lý submit ở đây
-                        Alert.alert('Thông báo!!', 'Thông tin của bạn đã được lưu.');
+                    onSubmit={async (values) => {
+                        const contact = {
+                            id: Date.now(),
+                            name: values.name || '',
+                            phonenumber: values.phonenumber || '',
+                            email: values.email || '',
+                            address: (values as any).adddress || (values as any).address || '',
+                            avatar: avatarUri || null,
+                        };
+                        try {
+                            const existing: any = await StorageService.getItem(StorageKeys.CONTACTS) || [];
+                            const updated = Array.isArray(existing) ? [contact, ...existing] : [contact];
+                            await StorageService.setItem(StorageKeys.CONTACTS, updated);
+                            Alert.alert('Thông báo!!', 'Thông tin của bạn đã được lưu.');
+                            navigation.navigate('home');
+                        } catch (e) {
+                            console.error('Save contact error', e);
+                            Alert.alert('Lỗi', 'Không thể lưu dữ liệu');
+                        }
                     }}
                 >
                     {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
                         <View style={styles.container}>
-                            <View style={styles.header}> {/* Header */}
-                                <Ionicons name="person" size={120} color="#b99c9cff" />
-                                <Text style={{ fontSize: 20, fontWeight: 'bold', marginTop: 5, color: '#1c1e21' }}>
+                            <View style={styles.backBtn}>
+                                <Ionicons
+                                    name="arrow-back"
+                                    size={40}
+                                    color="#7a8a9f"
+                                    onPress={() => navigation.navigate('home')}
+                                />
+                            </View>
+                            {/* Header */}
+                            <View style={styles.header}> 
+          
+                                    {avatarUri ? (
+                                        <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
+                                    ) : (
+                                        <Ionicons name="person-circle" size={200} color="#7a8a9f" />
+                                    )}
+
+                                    <TouchableOpacity style={styles.addPhotoBtn} onPress={() => setShowImageModal(true)}>
+                                        <View style={styles.addPhotoInner}>
+                                            <Icon name="camera-outline" size={18} color="#fff" />
+                                            <Text style={styles.addPhotoText}>CHỌN ẢNH</Text>
+                                        </View>
+                                    </TouchableOpacity>
+
+                                {/* <Text style={{ fontSize: 20, fontWeight: 'bold', marginTop: 5, color: '#1c1e21' }}>
                                     Xin chào {values.name}
-                                </Text>
+                                </Text> */}
                             </View>
 
                             <View style={styles.forminput}> {/* Form input */}
@@ -82,7 +144,7 @@ const ProfileScreen = () => {
                                     <Text style={styles.textstyle}>Họ và tên:</Text>
                                     <TextInput
                                         style={styles.input}
-                                        placeholder="Nhập tên của bạn"
+                                        placeholder="Nhập tên"
                                         value={values.name}
                                         onChangeText={handleChange('name')}
                                         onBlur={handleBlur('name')}
@@ -100,99 +162,12 @@ const ProfileScreen = () => {
                                         placeholder="Nhập số điện thoại"
                                         value={values.phonenumber}
                                         onChangeText={handleChange('phonenumber')}
-                                        onBlur={handleBlur('phonenumber')}
+                                        onBlur={handleBlur('phonenumber')} 
                                     />
                                 {touched.phonenumber && errors.phonenumber && (
                                     <Text style={{ color: 'red', marginLeft: 10 }}>{errors.phonenumber}</Text>
                                 )}
                                 
-
-                                {/* Ô nhập giới tính */}
-                                <View style={styles.genderstyle}>
-                                    <View
-                                    style={{
-                                        paddingBottom: 1
-                                    }}
-                                    >
-                                    <Text style={{
-                                        marginRight: 12,
-                                        fontSize: 16,
-                                        fontWeight: 'bold',
-                                        textAlign: 'left',
-                                        color: '#1c1e21',
-                                        // marginBottom: 4,
-                                        // marginTop: 20,
-                                    }}>Giới tính:</Text>
-                                    </View>
-                                    <View style={styles.genderWrapper}>
-                                        <Picker
-                                            selectedValue={values.gender}
-                                            onValueChange={itemValue => setFieldValue('gender', itemValue)}
-                                            style={styles.picker2}
-                                        >
-                                            <Picker.Item label="Nam" value="Nam"/>
-                                            <Picker.Item label="Nữ" value="Nữ"/>
-                                            <Picker.Item label="Thứ 3" value="ba"/>
-                                            <Picker.Item label="Thứ 4" value="bốn"/>
-                                            <Picker.Item label="Thứ 5" value="năm"/>
-                                        </Picker>
-                                    </View>
-                                </View>
-                                {touched.gender && errors.gender && (
-                                    <Text style={{ color: 'red', marginLeft: 10 }}>{errors.gender}</Text>
-                                )}
-
-
-                                {/* Ô nhập ngày tháng năm sinh */}
-                                    <Text style={styles.textstyle}>Ngày tháng năm sinh:</Text>
-                                    <View style={styles.dobbox}>
-                                        <TextInput
-                                            style={{}}
-                                            placeholder="DD"
-                                            keyboardType="numeric"
-                                            maxLength={2}
-                                            value={values.dob_day}
-                                            onChangeText={handleChange('dob_day')}
-                                            onBlur={handleBlur('dob_day')}
-                                        />
-                                        <Text>/</Text>
-                                        <TextInput
-                                            style={{ paddingHorizontal: 8 }}
-                                            placeholder="MM"
-                                            keyboardType="numeric"
-                                            maxLength={2}
-                                            value={values.dob_month}
-                                            onChangeText={handleChange('dob_month')}
-                                            onBlur={handleBlur('dob_month')}
-                                        />
-                                        <Text>/</Text>
-                                        <TextInput
-                                            style={{}}
-                                            placeholder="YYYY"
-                                            keyboardType="numeric"
-                                            maxLength={4}
-                                            value={values.dob_year}
-                                            onChangeText={handleChange('dob_year')}
-                                            onBlur={handleBlur('dob_year')}
-                                        />
-                                    </View>
-                                <View style={{
-                                    flexDirection: 'row', 
-                                    justifyContent: 'space-between',
-                                    paddingLeft: 5,
-                                    paddingRight: 10
-                                }}>
-                                
-                                {(touched.dob_day && errors.dob_day) && (
-                                    <Text style={{ color: 'red', marginLeft: 10 }}>{errors.dob_day}</Text>
-                                )}
-                                {(touched.dob_month && errors.dob_month) && (
-                                    <Text style={{ color: 'red', marginLeft: 10 }}>{errors.dob_month}</Text>
-                                )}
-                                {(touched.dob_year && errors.dob_year) && (
-                                    <Text style={{ color: 'red', marginLeft: 10 }}>{errors.dob_year}</Text>
-                                )}
-                                </View>
 
                                 {/* Ô nhập email */}
                                     <Text style={styles.textstyle}>Email:</Text>
@@ -214,12 +189,12 @@ const ProfileScreen = () => {
                                     <TextInput
                                         style={styles.input}
                                         placeholder="Nhập địa chỉ"
-                                        value={values.adddress}
+                                        value={values.address}
                                         onChangeText={handleChange('adddress')}
                                         onBlur={handleBlur('adddress')}
                                     />
-                                {touched.adddress && errors.adddress && (
-                                    <Text style={{ color: 'red', marginLeft: 10 }}>{errors.adddress}</Text>
+                                {touched.address && errors.address && (
+                                    <Text style={{ color: 'red', marginLeft: 10 }}>{errors.address}</Text>
                                 )}
 
 
@@ -231,6 +206,21 @@ const ProfileScreen = () => {
                         </View>
                     )}
                 </Formik>
+                <Modal visible={showImageModal} transparent animationType="slide" onRequestClose={() => setShowImageModal(false)}>
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modalContent}>
+                            <TouchableOpacity style={styles.modalOption} onPress={() => handlePickImage('library')}>
+                                <Text style={styles.modalText}>Chọn ảnh từ thiết bị</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.modalOption} onPress={() => handlePickImage('camera')}>
+                                <Text style={styles.modalText}>Chụp ảnh</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.modalCancel} onPress={() => setShowImageModal(false)}>
+                                <Text style={styles.modalCancelText}>Hủy</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </Modal>
             </KeyboardAwareScrollView>
         </TouchableWithoutFeedback>
     );
@@ -284,15 +274,86 @@ const styles = StyleSheet.create({
         borderRadius: 13,
         borderWidth: 1,
         borderColor: '#ccd0d5',
-        paddingHorizontal: 12,
+        paddingHorizontal: 20,
         fontSize: 16,
         color: '#1c1e21',
         height: 44,
         
     },
 
+    avatarImage: {
+        width: 140,
+        height: 140,
+        borderRadius: 70,
+        marginBottom: 12,
+    },
+
+    addPhotoBtn: {
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 20,
+        backgroundColor: '#7a8a9f',
+        marginTop: 6,
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+
+    addPhotoInner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        paddingHorizontal: 8,
+        paddingVertical: 6,
+    },
+
+    addPhotoText: {
+        color: '#fff',
+        fontWeight: '600',
+        marginLeft: 6,
+    },
+
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.4)',
+        justifyContent: 'flex-end',
+    },
+
+    modalContent: {
+        backgroundColor: '#fff',
+        padding: 16,
+        borderTopLeftRadius: 12,
+        borderTopRightRadius: 12,
+    },
+
+    modalOption: {
+        paddingVertical: 14,
+    },
+
+    modalText: {
+        fontSize: 16,
+        color: '#111',
+    },
+
+    modalCancel: {
+        paddingVertical: 14,
+        marginTop: 8,
+    },
+
+    modalCancelText: {
+        textAlign: 'center',
+        color: '#888',
+    },
+
+    backBtn: {
+        position: 'absolute',
+        left: 12,
+        top: 40,
+        zIndex: 10,
+        padding: 6,
+    },
+
     card: {
-        width: '95%',
+        width: '95%', 
         maxWidth: 400,
         backgroundColor: '#fff',
         borderRadius: 10,
@@ -309,7 +370,7 @@ const styles = StyleSheet.create({
         marginRight: 12,
         fontSize: 16,
         fontWeight: 'bold',
-        textAlign: 'left',
+        textAlign: 'left', //Căn trái
         color: '#1c1e21',
         marginBottom: 4,
         marginTop: 20,
@@ -401,7 +462,7 @@ const styles = StyleSheet.create({
     },
     signUpBtn: {
         backgroundColor: '#42b72a',
-        borderRadius: 6,
+        borderRadius: 20,
         paddingVertical: 12,
         alignItems: 'center',
         marginTop: 20,
@@ -427,4 +488,4 @@ const styles = StyleSheet.create({
     },
 })
 
-export default ProfileScreen;
+export default AddContactScreen;
