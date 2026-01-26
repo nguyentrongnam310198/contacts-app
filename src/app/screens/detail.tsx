@@ -15,14 +15,19 @@ import {
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import RootStackParamList from '../../types/route';
-import StorageService, { StorageKeys } from '../../utils/storage/storage';
+import { useAppContext } from '../../context-api/app.context';
+
 
 type DetailRouteProp = RouteProp<RootStackParamList, 'detail'>;
+    //RouteProp: lấy kiểu dữ liệu của route
+    //RootStackParamList: quy định màn nào phải có params gì - ở đây là Route detail' có param 'user'
+
 
 const DetailScreen = () => {
-    const route = useRoute<DetailRouteProp>();
+    const route = useRoute<DetailRouteProp>();  
     const navigation = useNavigation();
     const user = route.params?.user as any | undefined;
+    const { contacts, setContacts, toggleFavorite, isFavorite } = useAppContext();
 
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -31,10 +36,13 @@ const DetailScreen = () => {
     const [email, setEmail] = useState('');
     const [address, setAddress] = useState('');
     const [avatar, setAvatar] = useState<string | null>(null);
+    const [isFav, setIsFav] = useState(false);  // Track favorite status
 
+    //***Tải dữ liệu user vào các state khi component được mount
     useEffect(() => {
         if (!user) return;
         setAvatar(user.avatar || null);
+        setIsFav(isFavorite(user.id));  // Check if user is favorite
         const name = user.name || '';
         const parts = name.trim().split(' ');
         setFirstName(parts[0] || '');
@@ -49,12 +57,14 @@ const DetailScreen = () => {
         }
     }, [user]);
 
-    const handleSave = async () => {
+    const handleSave = () => {
+        // Validate tên dữ liệu đầu vào
         if (!firstName && !lastName) {
             Alert.alert('Lưu thất bại', 'Vui lòng nhập tên');
             return;
-        }
+        }  
 
+        // Tạo object user sau khi chỉnh sửa
         const updated = {
             ...user,
             name: `${firstName} ${lastName}`.trim(),
@@ -66,27 +76,17 @@ const DetailScreen = () => {
             avatar,
         };
 
-        try {
-            const stored: any = await StorageService.getItem(StorageKeys.CONTACTS) || [];
-            let newList: any[] = [];
-            if (Array.isArray(stored) && stored.length) {
-                const exists = stored.findIndex((s: any) => String(s.id) === String(updated.id));
-                if (exists >= 0) {
-                    newList = [...stored];
-                    newList[exists] = updated;
-                } else {
-                    newList = [updated, ...stored];
-                }
-            } else {
-                newList = [updated];
-            }
-            await StorageService.setItem(StorageKeys.CONTACTS, newList);
-            Alert.alert('Thông báo', 'Đã lưu');
-            navigation.goBack();
-        } catch (e) {
-            console.error('Save detail error', e);
-            Alert.alert('Lỗi', 'Không thể lưu dữ liệu');
+        // Cập nhật vào context
+        const exists = contacts.findIndex((s: any) => String(s.id) === String(updated.id));
+        let newList = [...contacts];
+        if (exists >= 0) {
+            newList[exists] = updated;
+        } else {
+            newList = [updated, ...contacts];
         }
+        setContacts(newList);
+        Alert.alert('Thông báo', 'Đã lưu');
+        navigation.goBack();
     };
 
     return (
@@ -101,9 +101,22 @@ const DetailScreen = () => {
                 </TouchableOpacity>
 
                 <Text style={styles.headerTitle}>THÔNG TIN LIÊN HỆ</Text>
-                <TouchableOpacity onPress={handleSave} style={styles.saveBtn}>
-                    <Text style={styles.saveText}>Lưu</Text>
-                </TouchableOpacity>
+                
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <TouchableOpacity 
+                        onPress={async () => {
+                            if (!user) return;
+                            await toggleFavorite(user.id);
+                            setIsFav(!isFav);
+                        }}
+                        style={styles.headerBtn}
+                    >
+                        <Ionicons name={isFav ? "star" : "star-outline"} size={26} color={isFav ? "#FFD700" : "#111"} />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={handleSave} style={styles.headerBtn}>
+                        <Ionicons name="checkmark" size={26} color="#1877F2" />
+                    </TouchableOpacity>
+                </View>
             </View>
 
 
@@ -165,15 +178,21 @@ const DetailScreen = () => {
                 <Button
                     title="Xoá liên hệ"
                     color="#ca3a32"
-                    onPress={async () => {
+                    onPress={() => {
                         if (!user) return;
                         Alert.alert('Xác nhận', 'Bạn có chắc muốn xóa liên hệ này?', [
                             { text: 'Hủy', style: 'cancel' },
-                            { text: 'Xóa', style: 'destructive', onPress: async () => {
+                            { text: 'Xóa', style: 'destructive', onPress: () => {
                                 try {
-                                    const stored: any = await StorageService.getItem(StorageKeys.CONTACTS) || [];
-                                    const filtered = Array.isArray(stored) ? stored.filter((s: any) => String(s.id) !== String(user.id)) : [];
-                                    await StorageService.setItem(StorageKeys.CONTACTS, filtered);
+                                    //*Xoá khỏi context - tự động cập nhật home screen
+                                    const filtered = contacts.filter((s: any) => String(s.id) !== String(user.id));
+                                        //contacts: danh sách user hiện tại
+                                        //filter: trả về mảng mới thoả mãn điều kiện
+                                        //(s: any): mỗi phần tử trong mảng contacts
+                                        //String(s.id): chuyển id sang chuỗi để so sánh
+                                        //String(s.id) !== String(user.id): giữ lại những user có id khác với id của user đang xem
+                                        //==> Ý nghĩa: trả về 1 mảng mới không chứa user đang xem
+                                    setContacts(filtered);
                                     Alert.alert('Thông báo', 'Liên hệ đã được xóa');
                                     navigation.goBack();
                                 } catch (e) {

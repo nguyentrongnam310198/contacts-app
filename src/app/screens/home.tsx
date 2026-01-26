@@ -5,70 +5,64 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 // import FontAwesome from 'react-native-vector-icons/FontAwesome';
-// navigation not needed for inline search
 import axios from 'axios';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation, useIsFocused, useRoute } from '@react-navigation/native';
 import RootStackParamList from '../../types/route';
-import StorageService, { StorageKeys } from '../../utils/storage/storage';
+import { useAppContext } from '../../context-api/app.context';
 
 //----------------------------------------------------------------------------------------------------------
 
 const HomeScreen = () => {
 
     const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+    const { contacts, setContacts, favorites, isFavorite } = useAppContext();  // Lấy contacts và favorites từ context
 
-    const { width } = Dimensions.get('window');  
+    //***Fetch danh sách users từ API và merge với context
+    const [apiUsers, setApiUsers] = useState<any[]>([]);  // Danh sách từ API
+    const [error, setError] = useState<string | null>(null);
+    const isFocused = useIsFocused();
+    const route = useRoute<any>();  // Type as any để tránh lỗi TypeScript
 
-
-  //***Fetch danh sách users từ API
-  const [users, setUsers] = useState<any[]>([]);  //liên hệ lấy từ API
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get('https://jsonplaceholder.typicode.com/users');
-                // Load stored contacts and prepend them to API result
-                const stored: any = await StorageService.getItem(StorageKeys.CONTACTS);
-                if (stored && Array.isArray(stored)) {
-                    setUsers([...stored, ...response.data]);
-                } else {
-                    setUsers(response.data);
-                }
-        setError(null);
-      } catch (err: any) {
-        setError(err.message || 'Lỗi khi tải dữ liệu');
-        console.error('Fetch users error:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUsers();
-  }, []);
-
-
-  //***Load danh bạ đã lưu từ AsyncStorage khi màn hình được focus lại
-  useEffect(() => {
-        const unsubscribe = navigation.addListener('focus', async () => {
+    // Fetch API lần đầu - load vào context
+    useEffect(() => {
+        const fetchUsers = async () => {
             try {
-                const stored: any = await StorageService.getItem(StorageKeys.CONTACTS);
-                if (stored && Array.isArray(stored)) {
-                    setUsers(prev => {
-                        //*Loại bỏ các user trùng lặp (dựa trên id)
-                        const prevWithoutStored = prev.filter(u => !stored.find((s: any) => String(s.id) === String(u.id)));
-                        return [...stored, ...prevWithoutStored];
-                    });
+                console.log('[Home] Fetching users from API...');
+                const response = await axios.get('https://jsonplaceholder.typicode.com/users', { timeout: 5000 });
+                let apiUsersData = Array.isArray(response?.data) ? response.data : [];
+                console.log('[Home] API users:', apiUsersData);
+                // Load API users vào context (nếu contacts rỗng)
+                if (contacts.length === 0) {
+                    setContacts(apiUsersData);
                 }
-            } catch (e) {
-                console.error('Load stored contacts on focus', e);
+                setError(null);
+            } catch (err: any) {
+                console.log('[Home] API error:', err);
+                setError(err.message || 'Lỗi khi tải dữ liệu');
             }
-        });
+        };
+        fetchUsers();
+    }, []);  // Chỉ chạy 1 lần khi component mount
 
-        return unsubscribe;
-    }, [navigation]);
+    // Khi quay lại home từ addcontact, thêm user mới vào context
+    useEffect(() => {
+        const params: any = route.params;
+        if (params?.newUser) {
+            console.log('[Home] Có user mới từ params:', params.newUser);
+            // Kiểm tra user đã tồn tại chưa (tránh duplicate)
+            const exists = contacts.some((c: any) => c.id === params.newUser.id);
+            if (!exists) {
+                setContacts([params.newUser, ...contacts]);
+            }
+        }
+    }, [route.params?.newUser]);  // Loại bỏ contacts khỏi dependency
+
+    // Sử dụng contacts từ context trực tiếp
+    const users = contacts;
+
+
+    //***Reload when screen is focused (useIsFocused)
+    // Xoá effect reload cũ, chỉ cần effect trên là đủ
 
 
   
@@ -78,10 +72,15 @@ const HomeScreen = () => {
     //*Lọc users theo `keyword` (tên) - case insensitive
     const filteredUsers = useMemo(() => {
         const q = keyword.trim().toLowerCase();
-        if (!q) return users;
-        return users.filter(u => (u.name || '').toLowerCase().includes(q));
+        if (!q) {
+            console.log('[Home] Render filteredUsers:', users);
+            return users;
+        }
+        const filtered = users.filter(u => (u.name || '').toLowerCase().includes(q));
+        console.log('[Home] Render filteredUsers (search):', filtered);
+        return filtered;
     }, [users, keyword]);
-
+    //useMemo: chỉ render lại khi 'users' hoặc 'keyword' thay đổi
 
 //----------------------------------------------------------------------------------------------------------
 
@@ -116,40 +115,46 @@ const HomeScreen = () => {
 
         {/* List */}
         <View style={styles.dealHeader}>
-            {/* <Text style={styles.dealTitle}>LIÊN HỆ</Text> */}
             <TouchableOpacity>
-                {/* <Text style={styles.exploreMore}>THÊM</Text> */}
+                {/* <Text 
+                style={styles.exploreMore}
+                onPress={() => navigation.navigate('addcontact')}
+                >THÊM</Text> */}
             </TouchableOpacity>
         </View>
 
-                {loading ? (
-                    <Text style={{ margin: 16 }}>Đang tải...</Text>
-                ) : error ? (
+                {error ? (
                     <Text style={{ margin: 16, color: 'red' }}>{error}</Text>
+                ) : filteredUsers.length === 0 ? (
+                    <Text style={{ margin: 16, color: '#888' }}>Không có liên hệ nào</Text>
                 ) : (
-                    <FlatList
-                        data={filteredUsers}
-                        showsVerticalScrollIndicator={false}
-                        keyExtractor={item => String(item.id)}
-                        renderItem={({ item }) => (
-                            <TouchableOpacity
-                                style={styles.userItem}
-                                onPress={() => navigation.navigate('detail', { user: item })}
-                            >
-                                <Text style={styles.userName}>{item.name}</Text>
-                                <Text style={styles.userEmail}>{item.email}</Text>
-                            </TouchableOpacity>
-                        )}
-                    />
+                    <>
+                        {/* Debug: show user count */}
+                        <Text style={{ marginLeft: 16, color: '#888', fontSize: 15 }}>Tổng số: {filteredUsers.length}</Text>
+                        <FlatList
+                            data={filteredUsers}
+                            showsVerticalScrollIndicator={false}
+                            keyExtractor={item => String(item.id)}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity
+                                    style={styles.userItem}
+                                    onPress={() => navigation.navigate('detail', { user: item })}
+                                >
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={styles.userName}>{item.name}</Text>
+                                            <Text style={styles.userEmail}>{item.email}</Text>
+                                        </View>
+                                        {isFavorite(item.id) && (
+                                            <Ionicons name="star" size={20} color="#FFD700" style={{ marginLeft: 8 }} />
+                                        )}
+                                    </View>
+                                </TouchableOpacity>
+                            )}
+                        />
+                    </>
                 )}
 
-        {/* Bottom Tab (giả lập)
-        <View style={styles.bottomTab}>
-            <Ionicons name="home" size={24} color="#1877F2" />
-            <Ionicons name="compass-outline" size={24} color="#888" />
-            <FontAwesome name="newspaper-o" size={24} color="#888" />
-            <Ionicons name="person-outline" size={24} color="#888" />
-      </View> */}
     </View>
   );
 };
@@ -212,43 +217,6 @@ storyAvatar: {
     borderRadius: 27, 
     borderWidth: 2, 
     borderColor: '#1877F2'
-  },
-
-storyName: { 
-    fontSize: 12, 
-    marginTop: 4, 
-    width: 54, 
-    textAlign: 'center' 
-    },
-
-bannerWrapper: { 
-    height: 160, 
-    marginBottom: 8
-    },
-
-bannerImage: { 
-    width: Dimensions.get('window').width - 32, 
-    height: 150, 
-    borderRadius: 16, 
-    marginHorizontal: 16
-    },
-
-storyTitle: { 
-    fontSize: 16,
-    fontWeight: 'bold',
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    marginHorizontal: 16, 
-    marginTop: 8,
-    marginBottom: 6
-    },
-
-bannerTitle: { 
-    fontWeight: 'bold',  //độ dày chữ
-    fontSize: 16, 
-    marginLeft: 16,
-    marginBottom: 5
     },
 
 dealHeader: { 
@@ -309,3 +277,7 @@ bottomTab: {
 });
 
 export default HomeScreen;
+
+// Hook	                Khi nào dùng
+// useIsFocused	        Chỉ cần biết trạng thái focus (true/false)
+// useFocusEffect   	Cần cleanup khi rời màn

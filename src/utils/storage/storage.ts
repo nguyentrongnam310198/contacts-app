@@ -5,10 +5,11 @@ export enum StorageKeys {
     ACCESS_TOKEN = 'access_token',
     USER_INFO = 'user_info',
     CONTACTS = 'contacts',
+    FAVORITES = 'favorites',
 }
-
+// 2. Tạo đối tượng StorageService với các hàm tiện ích
 const StorageService = {
-    // Hàm lưu dữ liệu (Tự động chuyển sang chuỗi JSON)
+    //**Hàm lưu dữ liệu (Tự động chuyển sang chuỗi JSON)
     setItem: async (key: StorageKeys, value: any) => {
         try {
             const jsonValue = JSON.stringify(value);
@@ -18,7 +19,7 @@ const StorageService = {
         }
     },
 
-    // Hàm lấy dữ liệu (Tự động chuyển từ JSON sang Object/String gốc)
+    //**Hàm lấy dữ liệu (Tự động chuyển từ JSON sang Object/String gốc)
     getItem: async (key: StorageKeys) => {
         try {
             const value = await AsyncStorage.getItem(key);
@@ -37,7 +38,7 @@ const StorageService = {
         }
     },
 
-    // Hàm xóa một key cụ thể
+    //**Hàm xóa một key cụ thể
     removeItem: async (key: StorageKeys) => {
         try {
             await AsyncStorage.removeItem(key);
@@ -46,7 +47,7 @@ const StorageService = {
         }
     },
 
-    // Hàm xóa sạch (Dùng khi Logout)
+    //**Hàm xóa sạch (Dùng khi Logout)
     clear: async () => {
         try {
             await AsyncStorage.clear();
@@ -57,3 +58,15 @@ const StorageService = {
 };
 
 export default StorageService;
+
+
+// 👉 AsyncStorage dùng khi nào?
+// Token đăng nhập (⚠️ không nhạy cảm)
+// User settings
+// Language
+// Theme
+// Cache tạm
+// Form draft --> bản nháp của form (dữ liệu người dùng đang nhập nhưng CHƯA submit), (submit: nộp, đệ trình)
+// Danh bạ nhỏ (như code bạn gửi)
+
+//*** Data lớn hoặc phức tạp --> dùng DB

@@ -5,15 +5,12 @@ import { View, Text, TextInput, TouchableOpacity, Image, Modal } from "react-nat
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Ionicons from 'react-native-vector-icons/Ionicons';  //https://ionic.io/ionicons
 import { StyleSheet, Keyboard } from "react-native";
-import { Picker } from '@react-native-picker/picker';
-import HomeScreen from "./home";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { TouchableWithoutFeedback } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import Icon from "react-native-vector-icons/Ionicons";
 import { Alert, Dimensions} from "react-native";
-import { Button } from "tamagui";
-import StorageService, { StorageKeys } from "../../utils/storage/storage";
+import { useAppContext } from '../../context-api/app.context';
 
 
 //-----------------------------------------------------------------------------------
@@ -60,7 +57,7 @@ const AddContactScreen = () => {
     const validationSchema = Yup.object().shape({
         name: Yup.string().required('Vui lòng nhập họ tên'),
         phonenumber: Yup.string()
-            .matches(/^\d{10,11}$/, 'Số điện thoại không hợp lệ')
+            .matches(/^\d{10,11}$/, 'Số điện thoại không hợp lệ') 
             .required('Vui lòng nhập số điện thoại'),
         //phonenumber: là tên trường trong form, để lưu số điện thoại
         //Yup.string(): khai báo kiểu dữ liệu của trường này
@@ -68,7 +65,7 @@ const AddContactScreen = () => {
         //.matches(): hàm kiểm tra, trong case này là biểu thức chính quy
         
         email: Yup.string().email('Email không hợp lệ').required('Vui lòng nhập email'),
-        adddress: Yup.string().required('Vui lòng nhập địa chỉ'),
+        address: Yup.string().required('Vui lòng nhập địa chỉ'),
     });
 
 
@@ -77,7 +74,7 @@ const AddContactScreen = () => {
 
     return (
         <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-            <KeyboardAwareScrollView  /* giúp tự động cuộn khi bàn phím hiện lên, tránh che khuất ô input */
+            <KeyboardAwareScrollView  
                 style={{ flex: 1, backgroundColor: '#f5f6fa' }}
                 contentContainerStyle={{ flexGrow: 1 }}
                 enableOnAndroid={true}
@@ -96,11 +93,8 @@ const AddContactScreen = () => {
                             avatar: avatarUri || null,
                         };
                         try {
-                            const existing: any = await StorageService.getItem(StorageKeys.CONTACTS) || [];
-                            const updated = Array.isArray(existing) ? [contact, ...existing] : [contact];
-                            await StorageService.setItem(StorageKeys.CONTACTS, updated);
                             Alert.alert('Thông báo!!', 'Thông tin của bạn đã được lưu.');
-                            navigation.navigate('home');
+                            navigation.navigate('home', { newUser: contact });
                         } catch (e) {
                             console.error('Save contact error', e);
                             Alert.alert('Lỗi', 'Không thể lưu dữ liệu');
@@ -117,7 +111,7 @@ const AddContactScreen = () => {
                                     onPress={() => navigation.navigate('home')}
                                 />
                             </View>
-                            {/* Header */}
+
                             <View style={styles.header}> 
           
                                     {avatarUri ? (
@@ -132,15 +126,10 @@ const AddContactScreen = () => {
                                             <Text style={styles.addPhotoText}>CHỌN ẢNH</Text>
                                         </View>
                                     </TouchableOpacity>
-
-                                {/* <Text style={{ fontSize: 20, fontWeight: 'bold', marginTop: 5, color: '#1c1e21' }}>
-                                    Xin chào {values.name}
-                                </Text> */}
                             </View>
 
-                            <View style={styles.forminput}> {/* Form input */}
+                            <View style={styles.forminput}> 
 
-                                {/* Ô nhập họ và tên */}
                                     <Text style={styles.textstyle}>Họ và tên:</Text>
                                     <TextInput
                                         style={styles.input}
@@ -154,7 +143,6 @@ const AddContactScreen = () => {
                                 )}
 
 
-                                {/* Ô nhập số điện thoại */}
                                     <Text style={styles.textstyle}>Số điện thoại:</Text>
                                     <TextInput
                                         style={styles.input}
@@ -169,7 +157,6 @@ const AddContactScreen = () => {
                                 )}
                                 
 
-                                {/* Ô nhập email */}
                                     <Text style={styles.textstyle}>Email:</Text>
                                     <TextInput
                                         style={styles.input}
@@ -184,21 +171,19 @@ const AddContactScreen = () => {
                                 )}
 
 
-                                {/* Ô nhập địa chỉ */}
                                     <Text style={styles.textstyle}>Địa chỉ:</Text>
                                     <TextInput
                                         style={styles.input}
                                         placeholder="Nhập địa chỉ"
-                                        value={values.address}
-                                        onChangeText={handleChange('adddress')}
-                                        onBlur={handleBlur('adddress')}
+                                        value={values.address}  
+                                        onChangeText={handleChange('address')}  
+                                        onBlur={handleBlur('address')}  
                                     />
                                 {touched.address && errors.address && (
                                     <Text style={{ color: 'red', marginLeft: 10 }}>{errors.address}</Text>
                                 )}
 
 
-                                {/* Nút lưu */}
                                 <TouchableOpacity style={styles.signUpBtn} onPress={handleSubmit}>
                                     <Text style={styles.signUpText}>Lưu thông tin</Text>
                                 </TouchableOpacity>

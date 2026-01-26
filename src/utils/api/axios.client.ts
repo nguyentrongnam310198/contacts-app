@@ -19,7 +19,7 @@ axiosClient.interceptors.request.use(async (config) => {
     return config;
 },
     (error) => {
-        return Promises.reject(error);
+        return Promise.reject(error);
     }
 );
 
