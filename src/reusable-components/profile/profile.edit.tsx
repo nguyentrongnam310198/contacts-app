@@ -5,7 +5,6 @@ import { Formik } from 'formik';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import AppInput from '../input/app.input';
 import AppButton from '../button/app.button';
-import { APP_COLOR } from '../../utils/constants/constants';
 import { ThemeColors } from '../theme/themeContext';
 import { EditProfileSchema } from '../../utils/validate/validate.chema';
 import MaterialIcons from 'react-native-vector-icons/MaterialCommunityIcons';
