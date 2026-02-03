@@ -75,7 +75,7 @@ const ProfileMenu = ({ user, onEditPress, isDarkTheme, toggleTheme, onLogout, co
                     <Switch
                         value={isDarkTheme}
                         onValueChange={toggleTheme}
-                        trackColor={{ false: '#767577', true: APP_COLOR.BLUE_LIGHT }}
+                        trackColor={{ false: '#767577', true: colors.primary }}
                         thumbColor={'#f4f3f4'}
                     />
                 </View>
@@ -92,19 +92,19 @@ const ProfileMenu = ({ user, onEditPress, isDarkTheme, toggleTheme, onLogout, co
                             onPress={() => changeLanguage('vi')}
                             style={[
                                 styles.langBtn,
-                                i18n.language === 'vi' && { backgroundColor: APP_COLOR.BLUE_LIGHT }
+                                i18n.language === 'vi' && { backgroundColor: colors.primary }
                             ]}
                         >
-                            <Text style={[styles.langText, i18n.language === 'vi' && { color: 'white' }]}>VI</Text>
+                            <Text style={[styles.langText, i18n.language === 'vi' && { color: colors.buttonText }]}>VI</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={() => changeLanguage('en')}
                             style={[
                                 styles.langBtn,
-                                i18n.language === 'en' && { backgroundColor: APP_COLOR.BLUE_LIGHT }
+                                i18n.language === 'en' && { backgroundColor: colors.primary }
                             ]}
                         >
-                            <Text style={[styles.langText, i18n.language === 'en' && { color: 'white' }]}>EN</Text>
+                            <Text style={[styles.langText, i18n.language === 'en' && { color: colors.buttonText }]}>EN</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -114,8 +114,8 @@ const ProfileMenu = ({ user, onEditPress, isDarkTheme, toggleTheme, onLogout, co
             <AppButton
                 title={t('profile.logout')}
                 onPress={onLogout}
-                backgroundColor={APP_COLOR.BLUE_LIGHT}
-                textStyle={{ fontWeight: 'bold' }}
+                backgroundColor={colors.primary}
+                textStyle={{ fontWeight: 'bold', color: colors.buttonText }}
             />
 
             <Modal
@@ -138,8 +138,8 @@ const ProfileMenu = ({ user, onEditPress, isDarkTheme, toggleTheme, onLogout, co
                                 <QRCode
                                     value={qrData}
                                     size={180}
-                                    color="black"
-                                    backgroundColor="white"
+                                    color={colors.text}
+                                    backgroundColor={colors.card}
                                 />
                             ) : (
                                 <Text>{t('qr.no_data')}</Text>

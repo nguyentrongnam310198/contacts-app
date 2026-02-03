@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { MagnifyingGlassIcon } from 'react-native-heroicons/outline';
 import { MapPinIcon } from 'react-native-heroicons/solid';
+import { useTheme } from '../theme/themeContext';
 
 interface LocationData {
     name: string;
@@ -23,25 +24,26 @@ const WeatherHeader: React.FC<WeatherHeaderProps> = ({
     handleTextDebounce,
     handleLocation
 }) => {
+    const { colors } = useTheme();
     return (
         <View style={[styles.searchSectionWrapper, { height: '7%' }]}>
             <View style={[
                 styles.searchBar,
-                { backgroundColor: showSearch ? 'rgba(255, 255, 255, 0.3)' : 'transparent' }
+                { backgroundColor: showSearch ? 'rgba(255, 255, 255, 0.12)' : 'transparent' }
             ]}>
                 {showSearch ? (
                     <TextInput
                         onChangeText={handleTextDebounce}
                         placeholder="Search city"
-                        placeholderTextColor={'lightgray'}
-                        style={styles.searchInput}
+                        placeholderTextColor={colors.placeholder}
+                        style={[styles.searchInput, { color: colors.text }]}
                     />
                 ) : null}
                 <TouchableOpacity
                     onPress={() => toggleSearch(!showSearch)}
-                    style={[styles.searchButton, { backgroundColor: showSearch ? 'transparent' : 'rgba(255, 255, 255, 0.3)' }]}
+                    style={[styles.searchButton, { backgroundColor: showSearch ? 'transparent' : 'rgba(255, 255, 255, 0.12)' }]}
                 >
-                    <MagnifyingGlassIcon size={25} color="white" />
+                    <MagnifyingGlassIcon size={25} color={colors.buttonText} />
                 </TouchableOpacity>
             </View>
 
@@ -56,8 +58,8 @@ const WeatherHeader: React.FC<WeatherHeaderProps> = ({
                                 key={index}
                                 style={[styles.locationItem, showBorder ? styles.locationItemBorder : null]}
                             >
-                                <MapPinIcon size={20} color="gray" />
-                                <Text style={styles.locationText}>{loc?.name}, {loc?.country}</Text>
+                                <MapPinIcon size={20} color={colors.subText} />
+                                    <Text style={[styles.locationText, { color: colors.text }]}>{loc?.name}, {loc?.country}</Text>
                             </TouchableOpacity>
                         )
                     })}

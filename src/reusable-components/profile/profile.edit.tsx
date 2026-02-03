@@ -113,7 +113,7 @@ const EditProfileForm = ({ user, onSave, onCancel, colors }: EditProfileFormProp
                             <MaterialIcons
                                 name="calendar-month"
                                 size={24}
-                                color={APP_COLOR.GREY}
+                                color={colors.subText}
                             />
                         </View>
                     </Pressable>
@@ -148,8 +148,8 @@ const EditProfileForm = ({ user, onSave, onCancel, colors }: EditProfileFormProp
                         <AppButton
                             title={t('common.save')}
                             onPress={() => handleSubmit()}
-                            backgroundColor={APP_COLOR.BLUE_LIGHT}
-                            textStyle={{ fontWeight: 'bold', }}
+                            backgroundColor={colors.primary}
+                            textStyle={{ fontWeight: 'bold', color: colors.buttonText }}
                         />
                         <AppButton
                             title={t('common.cancel')}
@@ -200,7 +200,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     buttonText: {
         fontSize: 14,
         fontWeight: 'bold',
-        color: APP_COLOR.WHITE
+        color: colors.buttonText
     },
     cancelButtonText: {
         color: colors.text

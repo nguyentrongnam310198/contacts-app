@@ -25,7 +25,7 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-//☀️ Light Theme
+//***Light Theme
 const lightColors: ThemeColors = {  //instance của ThemeColors để dùng từng Screen
     background: '#F2F2F7',     
     text: '#000000',
@@ -39,6 +39,7 @@ const lightColors: ThemeColors = {  //instance của ThemeColors để dùng t�
     placeholder: '#C7C7CD'
 };
 
+//***Dark Theme
 const darkColors: ThemeColors = {
     background: '#000000',
     text: '#F2F2F7',
@@ -66,7 +67,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
             }
         };
         loadTheme();
-    }, []);  //---> hàm này để đồng bộ giao diện app với giao diện hệ thống (điện thoại user)
+    }, [systemScheme]);  //---> hàm này để đồng bộ giao diện app với giao diện hệ thống (điện thoại user)
 
     //==Hàm chuyển đổi theme==
     const toggleTheme = async () => {  

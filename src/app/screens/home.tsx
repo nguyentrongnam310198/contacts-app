@@ -1,40 +1,45 @@
-import React, { useRef, useState, useEffect, useMemo } from 'react';
+import React, {  useState, useEffect, useMemo } from 'react';
 import {
-  View, Text, StyleSheet, TextInput, ScrollView, Image, FlatList, TouchableOpacity, Dimensions,
+  View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity,
   Pressable
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 // import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import axios from 'axios';
-import { NavigationProp, useNavigation, useIsFocused, useRoute } from '@react-navigation/native';
+import { NavigationProp, useNavigation, useIsFocused } from '@react-navigation/native';
 import RootStackParamList from '../../types/route';
 import { useAppContext } from '../../context-api/app.context';
+import { useTheme } from '../../reusable-components/theme/themeContext';
 
 //----------------------------------------------------------------------------------------------------------
 
 const HomeScreen = () => {
 
     const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-    const { contacts, setContacts, favorites, isFavorite } = useAppContext();  // Lấy contacts và favorites từ context
+    const { contacts, setContacts, isFavorite, favorites } = useAppContext();  // Lấy contacts và favorites từ context
+    const { theme, toggleTheme, colors } = useTheme();
 
     //***Fetch danh sách users từ API và merge với context
-    const [apiUsers, setApiUsers] = useState<any[]>([]);  // Danh sách từ API
     const [error, setError] = useState<string | null>(null);
+    const [hasFetched, setHasFetched] = useState(false);  // Flag để track đã fetch chưa
     const isFocused = useIsFocused();
-    const route = useRoute<any>();  // Type as any để tránh lỗi TypeScript
 
-    // Fetch API lần đầu - load vào context
+    // Fetch API lần đầu - load vào context (CHỈ 1 LẦN DUY NHẤT)
     useEffect(() => {
         const fetchUsers = async () => {
+            // Chỉ fetch nếu chưa fetch và contacts rỗng
+            if (hasFetched || contacts.length > 0) {
+                console.log('[Home] Skip fetch - already have data');
+                return;
+            }
+
             try {
                 console.log('[Home] Fetching users from API...');
                 const response = await axios.get('https://jsonplaceholder.typicode.com/users', { timeout: 5000 });
                 let apiUsersData = Array.isArray(response?.data) ? response.data : [];
                 console.log('[Home] API users:', apiUsersData);
-                // Load API users vào context (nếu contacts rỗng)
-                if (contacts.length === 0) {
-                    setContacts(apiUsersData);
-                }
+                setContacts(apiUsersData);
+                setHasFetched(true);  // Đánh dấu đã fetch
                 setError(null);
             } catch (err: any) {
                 console.log('[Home] API error:', err);
@@ -42,30 +47,19 @@ const HomeScreen = () => {
             }
         };
         fetchUsers();
-    }, []);  // Chỉ chạy 1 lần khi component mount
+    }, [contacts.length, hasFetched, setContacts]);  
 
-    // Khi quay lại home từ addcontact, thêm user mới vào context
+    // Reload danh sách khi quay lại màn hình home (sử dụng isFocused)
     useEffect(() => {
-        const params: any = route.params;
-        if (params?.newUser) {
-            console.log('[Home] Có user mới từ params:', params.newUser);
-            // Kiểm tra user đã tồn tại chưa (tránh duplicate)
-            const exists = contacts.some((c: any) => c.id === params.newUser.id);
-            if (!exists) {
-                setContacts([params.newUser, ...contacts]);
-            }
+        if (isFocused) {
+            console.log('[Home] Screen focused - contacts:', contacts.length);
+            // Contacts tự động cập nhật từ context, không cần làm gì thêm
         }
-    }, [route.params?.newUser]);  // Loại bỏ contacts khỏi dependency
+    }, [isFocused, contacts.length]);
 
     // Sử dụng contacts từ context trực tiếp
     const users = contacts;
 
-
-    //***Reload when screen is focused (useIsFocused)
-    // Xoá effect reload cũ, chỉ cần effect trên là đủ
-
-
-  
     //***Xử lý search
     const [keyword, setKeyword] = useState('');
 
@@ -85,30 +79,33 @@ const HomeScreen = () => {
 //----------------------------------------------------------------------------------------------------------
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
 
         {/* Header */}
         <View style={styles.header}>
-            <Text style={styles.logo}>LIÊN HỆ</Text>
+            <Text style={[styles.logo, { color: colors.primary }]}>LIÊN HỆ</Text>
             <View style={styles.headerIcons}>
-                <Pressable onPress={() => navigation.navigate('addcontact')}>
-                    <Ionicons name="person-add-outline" size={30} style={styles.headerIcon} />
+                <Pressable onPress={() => toggleTheme()} style={styles.themeToggle}>
+                    <Ionicons name={theme === 'light' ? 'moon-outline' : 'sunny-outline'} size={30} color={colors.subText} />
                 </Pressable>
-                
+                <Pressable onPress={() => navigation.navigate('addcontact')}>
+                    <Ionicons name="person-add-outline" size={30} color={colors.subText} style={styles.headerIcon} />
+                </Pressable>
             </View>
         </View>
 
         {/* Search */}
-        <View style={styles.searchWrapper}>
-            <Ionicons name="search" size={20} color="#666" />
+        <View style={[styles.searchWrapper, { backgroundColor: colors.inputBackground }]}> 
+            <Ionicons name="search" size={20} color={colors.subText} />
             <TextInput 
-                style={styles.input} 
+                style={[styles.input, { color: colors.text }]} 
                 placeholder="Tìm kiếm" 
+                placeholderTextColor={colors.placeholder}
                 value={keyword}
                 onChangeText={setKeyword}
             />
             <Pressable onPress={() => { if (keyword) setKeyword(''); }}>
-                <Ionicons name={keyword ? 'backspace-outline' : 'close-outline'} size={20} color="#666" />
+                <Ionicons name={keyword ? 'backspace-outline' : 'close-outline'} size={20} color={colors.subText} />
             </Pressable>
         </View>
 
@@ -124,29 +121,30 @@ const HomeScreen = () => {
         </View>
 
                 {error ? (
-                    <Text style={{ margin: 16, color: 'red' }}>{error}</Text>
+                    <Text style={styles.errorText}>{error}</Text>
                 ) : filteredUsers.length === 0 ? (
-                    <Text style={{ margin: 16, color: '#888' }}>Không có liên hệ nào</Text>
+                    <Text style={styles.noContacts}>Không có liên hệ nào</Text>
                 ) : (
                     <>
                         {/* Debug: show user count */}
-                        <Text style={{ marginLeft: 16, color: '#888', fontSize: 15 }}>Tổng số: {filteredUsers.length}</Text>
+                        <Text style={[styles.totalCount, { color: colors.subText }]}>Tổng số: {filteredUsers.length}</Text>
                         <FlatList
                             data={filteredUsers}
+                            extraData={favorites}
                             showsVerticalScrollIndicator={false}
                             keyExtractor={item => String(item.id)}
                             renderItem={({ item }) => (
                                 <TouchableOpacity
-                                    style={styles.userItem}
+                                    style={[styles.userItem, { borderColor: colors.border, backgroundColor: colors.card }]}
                                     onPress={() => navigation.navigate('detail', { user: item })}
                                 >
-                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <View style={{ flex: 1 }}>
-                                            <Text style={styles.userName}>{item.name}</Text>
-                                            <Text style={styles.userEmail}>{item.email}</Text>
+                                    <View style={styles.userRow}>
+                                        <View style={styles.userInfo}>
+                                            <Text style={[styles.userName, { color: colors.text }]}>{item.name}</Text>
+                                            <Text style={[styles.userEmail, { color: colors.subText }]}>{item.email}</Text>
                                         </View>
                                         {isFavorite(item.id) && (
-                                            <Ionicons name="star" size={20} color="#FFD700" style={{ marginLeft: 8 }} />
+                                            <Ionicons name="star" size={20} color="#FFD700" style={styles.favoriteIcon} />
                                         )}
                                     </View>
                                 </TouchableOpacity>
@@ -161,10 +159,9 @@ const HomeScreen = () => {
 
 const styles = StyleSheet.create({
   
-container: { 
+    container: { 
     flex: 1, 
-    backgroundColor: '#fff', 
-    paddingTop: 40
+    paddingTop: 60
     },
 
 header: { 
@@ -174,22 +171,25 @@ header: {
     paddingHorizontal: 16 
     },
 
-logo: { 
+    logo: { 
     fontSize: 24, 
-    fontWeight: 'bold', 
-    color: '#1877F2' 
+    fontWeight: 'bold'
     },
 
 headerIcons: { 
     flexDirection: 'row'
     },
 
+themeToggle: {
+    marginRight: 12
+},
+
 headerIcon: { 
-    marginLeft: 16, color: '#888'
+    marginLeft: 16
     },
 
 searchWrapper: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#f2f2f2',
+    flexDirection: 'row', alignItems: 'center',
     borderRadius: 12, margin: 16, paddingHorizontal: 12, height: 44,
     },
 
@@ -197,26 +197,6 @@ input: {
     flex: 1, 
     marginLeft: 8, 
     fontSize: 16 
-    },
-
-storiesWrapper: { 
-    flexDirection: 'row', 
-    marginLeft: 16, 
-    marginBottom: 8     
-    },
-
-storyItem: { 
-    alignItems: 'center', 
-    marginRight: 16, 
-    width: 64 
-    },
-
-storyAvatar: { 
-    width: 54, 
-    height: 54, 
-    borderRadius: 27, 
-    borderWidth: 2, 
-    borderColor: '#1877F2'
     },
 
 dealHeader: { 
@@ -243,37 +223,59 @@ dealImage: {
     borderRadius: 12, 
     margin: 8
     },
-
-userItem: {
+    userItem: {
         paddingHorizontal: 16,
         paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderColor: '#f0f0f0',
-        backgroundColor: '#fff'
+        borderBottomWidth: 1
     },
 
-userName: {
+userRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+    },
+
+userInfo: {
+        flex: 1
+    },
+
+    userName: {
         fontSize: 16,
-        fontWeight: '600',
-        color: '#111'
+        fontWeight: '600'
     },
 
-userEmail: {
+    userEmail: {
         fontSize: 13,
-        color: '#666',
         marginTop: 4
     },
 
-bottomTab: {
+    favoriteIcon: {
+        marginLeft: 8
+    },
+
+noContacts: {
+        margin: 16,
+        color: '#888'
+    },
+
+errorText: {
+        margin: 16,
+        color: 'red'
+    },
+
+    bottomTab: {
     flexDirection: 'row', 
     justifyContent: 'space-around',  //chia đều khoảng cách giữa các icon
     alignItems: 'center',  //căn giữa theo chiều dọc
     height: 56,  
-    borderTopWidth: 1, 
-    borderColor: '#eee', 
-    backgroundColor: '#fff', 
+    borderTopWidth: 1,
     marginTop: 8,
     },
+
+    totalCount: {
+        marginLeft: 16,
+        fontSize: 15
+    }
 });
 
 export default HomeScreen;

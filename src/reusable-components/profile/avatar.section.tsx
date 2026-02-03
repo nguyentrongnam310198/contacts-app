@@ -23,7 +23,7 @@ const AvatarSection = ({ avatar, isEditMode, onPressCamera, colors }: AvatarSect
                     <Image source={{ uri: avatar }} style={styles.imageAvatar} />
                     {isEditMode && (
                         <Pressable style={styles.cameraButton} onPress={onPressCamera}>
-                            <MaterialIcons name="camera" size={16} color={APP_COLOR.WHITE} />
+                            <MaterialIcons name="camera" size={16} color={colors.buttonText} />
                         </Pressable>
                     )}
                 </Pressable>
@@ -56,14 +56,14 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
         position: 'absolute',
         bottom: 0,
         right: 0,
-        backgroundColor: APP_COLOR.BLUE_LIGHT,
+        backgroundColor: colors.primary,
         width: 36,
         height: 36,
         borderRadius: 18,
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 3,
-        borderColor: colors.background,
+        borderColor: colors.card,
     },
 });
 

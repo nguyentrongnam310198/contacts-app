@@ -1,17 +1,19 @@
 import React from 'react';
 import { View, Text, ScrollView, Image, StyleSheet } from 'react-native';
 import { CalendarDaysIcon } from 'react-native-heroicons/outline';
+import { useTheme } from '../theme/themeContext';
 
 interface WeatherFooterProps {
     forecast: any;
 }
 
 const WeatherFooter: React.FC<WeatherFooterProps> = ({ forecast }) => {
+    const { colors } = useTheme();
     return (
         <View style={styles.forecastSection}>
             <View style={styles.forecastHeader}>
-                <CalendarDaysIcon size={22} color="white" />
-                <Text style={styles.forecastHeaderText}>Daily forecast</Text>
+                <CalendarDaysIcon size={22} color={colors.buttonText} />
+                <Text style={[styles.forecastHeaderText, { color: colors.text }]}>Daily forecast</Text>
             </View>
             <ScrollView
                 horizontal
@@ -27,14 +29,14 @@ const WeatherFooter: React.FC<WeatherFooterProps> = ({ forecast }) => {
                     return (
                         <View
                             key={index}
-                            style={[styles.forecastCard, { backgroundColor: 'rgba(255, 255, 255, 0.3)' }]}
+                            style={[styles.forecastCard, { backgroundColor: 'rgba(255, 255, 255, 0.12)' }]}
                         >
                             <Image
                                 source={{ uri: 'https:' + item?.day?.condition?.icon }}
                                 style={styles.forecastIcon}
                             />
-                            <Text style={styles.forecastDay}>{dayName}</Text>
-                            <Text style={styles.forecastTemp}>{item?.day?.avgtemp_c}&#176;</Text>
+                            <Text style={[styles.forecastDay, { color: colors.text }]}>{dayName}</Text>
+                            <Text style={[styles.forecastTemp, { color: colors.text }]}>{item?.day?.avgtemp_c}&#176;</Text>
                         </View>
                     )
                 })}

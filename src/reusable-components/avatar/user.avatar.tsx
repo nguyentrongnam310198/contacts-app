@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { APP_COLOR } from '../../utils/constants/constants';
+import { useTheme } from '../theme/themeContext';
 
 interface UserAvatarProps {
     avatar: string;
@@ -24,15 +25,17 @@ const UserAvatar = ({
 
     const config = sizeConfig[size];
 
+    const { colors } = useTheme();
+
     return (
         <View style={styles.container}>
-            <View style={[styles.avatarContainer, { width: config.width, height: config.height }]}>
-                <Text style={[styles.avatarText, { fontSize: config.fontSize }]}>
+            <View style={[styles.avatarContainer, { width: config.width, height: config.height, backgroundColor: colors.card }]}> 
+                <Text style={[styles.avatarText, { fontSize: config.fontSize, color: colors.text }] }>
                     {avatar || '👨'}
                 </Text>
                 {showCamera && onCameraPress && (
-                    <Pressable style={styles.cameraButton} onPress={onCameraPress}>
-                        <MaterialIcons name="camera" size={16} color={APP_COLOR.WHITE} />
+                    <Pressable style={[styles.cameraButton, { backgroundColor: colors.primary, borderColor: colors.card }]} onPress={onCameraPress}>
+                        <MaterialIcons name="camera" size={16} color={colors.buttonText} />
                     </Pressable>
                 )}
             </View>

@@ -23,6 +23,7 @@ interface AppContextType {
     contacts: any[];
     setContacts: (c: any[]) => void;
     addContact: (c: any) => void;
+    updateContact: (contactId: string | number, updates: any) => void;
     // Favorites - stored in AsyncStorage
     favorites: string[];  // Array of favorite contact IDs
     toggleFavorite: (contactId: string | number) => Promise<void>;
@@ -33,7 +34,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<UserData | null>(null);
-    const [appLoading, setAppLoading] = useState(true);
+    const [appLoading, _setAppLoading] = useState(true);
     const [contacts, setContacts] = useState<any[]>([]);
     const [favorites, setFavorites] = useState<string[]>([]);
 
@@ -52,28 +53,39 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         loadFavorites();
     }, []);
 
-    // Toggle favorite
+    // Toggle favorite (compute synchronously from current state so caller can rely on updated value)
     const toggleFavorite = async (contactId: string | number) => {
+        const idStr = String(contactId);
         try {
-            const idStr = String(contactId);
-            let newFavorites: string[];
-            
-            if (favorites.includes(idStr)) {
-                newFavorites = favorites.filter(id => id !== idStr);
-            } else {
-                newFavorites = [...favorites, idStr];
+            const normalized = favorites.map(String);
+            const currentlyFavorite = normalized.includes(idStr);
+            const newFavorites: string[] = currentlyFavorite
+                ? favorites.filter(id => String(id) !== idStr)
+                : [...favorites, idStr];
+
+            // Persist updated favorites and then update state so everything is consistent
+            try {
+                await AsyncStorage.setItem('favorites', JSON.stringify(newFavorites));
+            } catch (err) {
+                console.error('AsyncStorage set favorites failed', err);
             }
-            
+
             setFavorites(newFavorites);
-            await AsyncStorage.setItem('favorites', JSON.stringify(newFavorites));
+
+            // Also update the contacts list so UI that depends on `contacts` updates immediately
+            setContacts(prevContacts => prevContacts.map(c => {
+                if (!c) return c;
+                return String(c.id) === idStr ? { ...c, isFavorite: !currentlyFavorite } : c;
+            }));
+
         } catch (error) {
             console.error('Toggle favorite error:', error);
         }
     };
 
-    // Check nếu contact là favorite
+    // Check nếu contact là favorite (compare as strings to avoid type mismatch)
     const isFavorite = (contactId: string | number): boolean => {
-        return favorites.includes(String(contactId));
+        return favorites.some(f => String(f) === String(contactId));
     };
 
     const updateUser = (updates: Partial<UserData>) => {
@@ -96,6 +108,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setContacts(prev => [c, ...prev]);
     };
 
+    const updateContact = (contactId: string | number, updates: any) => {
+        setContacts(prev => {
+            const index = prev.findIndex((c: any) => String(c.id) === String(contactId));
+            if (index >= 0) {
+                const newList = [...prev];
+                newList[index] = { ...newList[index], ...updates };
+                return newList;
+            }
+            return prev;
+        });
+    };
+
     return (
         <AppContext.Provider
             value={{
@@ -108,6 +132,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
                 contacts,
                 setContacts,
                 addContact,
+                updateContact,
                 favorites,
                 toggleFavorite,
                 isFavorite

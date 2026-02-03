@@ -28,14 +28,14 @@ const AvatarPickerModal = ({ visible, onClose, onCamera, onGallery, colors }: Av
                         <AppButton
                             title="Chụp ảnh"
                             onPress={onCamera}
-                            backgroundColor={APP_COLOR.BLUE_LIGHT}
-                            textStyle={styles.modalBtnText}
+                            backgroundColor={colors.primary}
+                            textStyle={[styles.modalBtnText, { color: colors.buttonText }]}
                         />
                         <AppButton
                             title="Chọn từ thư viện"
                             onPress={onGallery}
-                            backgroundColor={APP_COLOR.BLUE_LIGHT}
-                            textStyle={styles.modalBtnText}
+                            backgroundColor={colors.primary}
+                            textStyle={[styles.modalBtnText, { color: colors.buttonText }]}
                         />
                     </View>
                     <AppButton
@@ -77,14 +77,13 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
         marginBottom: 12
     },
     modalBtn: {
-        backgroundColor: APP_COLOR.BLUE_LIGHT,
         borderRadius: 12,
         paddingVertical: 12
     },
     modalBtnText: {
         fontSize: 14,
         fontWeight: 'bold',
-        color: APP_COLOR.WHITE
+        // color: APP_COLOR.WHITE
     },
     modalBtnTextClose: {
         fontSize: 14,

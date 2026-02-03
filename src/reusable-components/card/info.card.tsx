@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, View, Text, Pressable, StyleProp, ViewStyle } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { APP_COLOR } from '../../utils/constants/constants';
+import { useTheme } from '../theme/themeContext';
 
 interface InforCardProps {
     icon: string;
@@ -15,18 +16,20 @@ interface InforCardProps {
 
 const InforCard = ({
     icon, label, status, onPress,
-    showChevron = true, textColor = APP_COLOR.BLACK,
+    showChevron = true, textColor,
 }: InforCardProps) => {
+    const { colors } = useTheme();
+    const resolvedTextColor = textColor || colors.text;
     return (
-        <Pressable style={styles.container} onPress={onPress} disabled={!onPress}>
+        <Pressable style={[styles.container, { borderBottomColor: colors.border, backgroundColor: colors.card }]} onPress={onPress} disabled={!onPress}>
             <View style={styles.leftContent}>
-                <MaterialIcons name={icon} size={24} color={textColor} />
-                <Text style={[styles.label, { color: textColor }]}>{label}</Text>
+                <MaterialIcons name={icon} size={24} color={resolvedTextColor} />
+                <Text style={[styles.label, { color: resolvedTextColor }]}>{label}</Text>
             </View>
             <View style={styles.rightContent}>
-                {status && <Text style={styles.status}>{status}</Text>}
+                {status && <Text style={[styles.status, { color: colors.subText }]}>{status}</Text>}
                 {showChevron && (
-                    <MaterialIcons name="chevron-right" size={20} color={textColor} />
+                    <MaterialIcons name="chevron-right" size={20} color={resolvedTextColor} />
                 )}
             </View>
         </Pressable>

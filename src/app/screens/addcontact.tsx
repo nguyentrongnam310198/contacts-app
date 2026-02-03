@@ -9,19 +9,20 @@ import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { TouchableWithoutFeedback } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import Icon from "react-native-vector-icons/Ionicons";
-import { Alert, Dimensions} from "react-native";
+import { Alert } from "react-native";
 import { useAppContext } from '../../context-api/app.context';
+import { useTheme } from '../../reusable-components/theme/themeContext';
 
 
 //-----------------------------------------------------------------------------------
 
 const AddContactScreen = () => {
 
-    const { width } = Dimensions.get('window'); 
-    
+    const { addContact } = useAppContext();
 
     const navigation = useNavigation<NavigationProp<any>>();
     const [avatarUri, setAvatarUri] = useState<string | null>(null);
+    const { colors } = useTheme();
     const [showImageModal, setShowImageModal] = useState(false);
 
     const handlePickImage = async (type: 'camera' | 'library') => {
@@ -72,11 +73,19 @@ const AddContactScreen = () => {
 
 //----------------------------------------------------------------------------------------------------------
 
+    const themedStyles = StyleSheet.create({
+        keyboard: {
+            flex: 1,
+            backgroundColor: colors.background,
+        },
+    });
+
     return (
+        
         <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-            <KeyboardAwareScrollView  
-                style={{ flex: 1, backgroundColor: '#f5f6fa' }}
-                contentContainerStyle={{ flexGrow: 1 }}
+            <KeyboardAwareScrollView
+                style={themedStyles.keyboard}
+                contentContainerStyle={styles.scrollContent}
                 enableOnAndroid={true}
                 extraScrollHeight={100}
             >
@@ -93,99 +102,108 @@ const AddContactScreen = () => {
                             avatar: avatarUri || null,
                         };
                         try {
+                            // Lưu contact vào context
+                            addContact(contact);
                             Alert.alert('Thông báo!!', 'Thông tin của bạn đã được lưu.');
-                            navigation.navigate('home', { newUser: contact });
+                            navigation.navigate('home');
                         } catch (e) {
                             console.error('Save contact error', e);
                             Alert.alert('Lỗi', 'Không thể lưu dữ liệu');
                         }
                     }}
                 >
-                    {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
-                        <View style={styles.container}>
-                            <View style={styles.backBtn}>
-                                <Ionicons
-                                    name="arrow-back"
-                                    size={40}
-                                    color="#7a8a9f"
-                                    onPress={() => navigation.navigate('home')}
-                                />
-                            </View>
+                    {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
+                        <View style={[styles.container, { backgroundColor: colors.background }]}>
+                            <View   style={[styles.header, { backgroundColor: colors.background }] }>
+                                <View style={styles.backBtn}>
+                                    <Ionicons
+                                        name="arrow-back"
+                                        size={35}
+                                        color={colors.subText}
+                                        onPress={() => navigation.navigate('home')}
+                                    />
+                                </View>
+                            
 
-                            <View style={styles.header}> 
-          
-                                    {avatarUri ? (
-                                        <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
-                                    ) : (
-                                        <Ionicons name="person-circle" size={200} color="#7a8a9f" />
-                                    )}
+                                <View style={[styles.header, { backgroundColor: colors.background }]}> 
+            
+                                        {avatarUri ? (
+                                            <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
+                                        ) : (
+                                            <Ionicons name="person-circle" size={200} color={colors.subText} />
+                                        )}
 
-                                    <TouchableOpacity style={styles.addPhotoBtn} onPress={() => setShowImageModal(true)}>
-                                        <View style={styles.addPhotoInner}>
-                                            <Icon name="camera-outline" size={18} color="#fff" />
-                                            <Text style={styles.addPhotoText}>CHỌN ẢNH</Text>
-                                        </View>
-                                    </TouchableOpacity>
+                                        <TouchableOpacity style={[styles.addPhotoBtn, { backgroundColor: colors.primary }]} onPress={() => setShowImageModal(true)}>
+                                            <View style={styles.addPhotoInner}>
+                                                <Icon name="camera-outline" size={18} color={colors.buttonText} />
+                                                <Text style={[styles.addPhotoText, { color: colors.buttonText }]}>CHỌN ẢNH</Text>
+                                            </View>
+                                        </TouchableOpacity>
+                                </View>
                             </View>
 
                             <View style={styles.forminput}> 
 
-                                    <Text style={styles.textstyle}>Họ và tên:</Text>
+                                    <Text style={[styles.textstyle, { color: colors.text }]}>Họ và tên:</Text>
                                     <TextInput
-                                        style={styles.input}
+                                        style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text }]}
                                         placeholder="Nhập tên"
+                                        placeholderTextColor={colors.placeholder}
                                         value={values.name}
                                         onChangeText={handleChange('name')}
                                         onBlur={handleBlur('name')}
                                     />
                                 {touched.name && errors.name && (
-                                    <Text style={{ color: 'red', marginLeft: 10 }}>{errors.name}</Text>
+                                    <Text style={styles.errorText}>{errors.name}</Text>
                                 )}
 
 
-                                    <Text style={styles.textstyle}>Số điện thoại:</Text>
+                                    <Text style={[styles.textstyle, { color: colors.text }]}>Số điện thoại:</Text>
                                     <TextInput
-                                        style={styles.input}
+                                        style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text }]}
                                         keyboardType="phone-pad"
                                         placeholder="Nhập số điện thoại"
+                                        placeholderTextColor={colors.placeholder}
                                         value={values.phonenumber}
                                         onChangeText={handleChange('phonenumber')}
                                         onBlur={handleBlur('phonenumber')} 
                                     />
                                 {touched.phonenumber && errors.phonenumber && (
-                                    <Text style={{ color: 'red', marginLeft: 10 }}>{errors.phonenumber}</Text>
+                                    <Text style={styles.errorText}>{errors.phonenumber}</Text>
                                 )}
                                 
 
-                                    <Text style={styles.textstyle}>Email:</Text>
+                                    <Text style={[styles.textstyle, { color: colors.text }]}>Email:</Text>
                                     <TextInput
-                                        style={styles.input}
+                                        style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text }]}
                                         keyboardType="email-address"
                                         placeholder="Nhập địa chỉ Email"
+                                        placeholderTextColor={colors.placeholder}
                                         value={values.email}
                                         onChangeText={handleChange('email')}
                                         onBlur={handleBlur('email')}
                                     />
                                 {touched.email && errors.email && (
-                                    <Text style={{ color: 'red', marginLeft: 10 }}>{errors.email}</Text>
+                                    <Text style={styles.errorText}>{errors.email}</Text>
                                 )}
 
 
-                                    <Text style={styles.textstyle}>Địa chỉ:</Text>
+                                    <Text style={[styles.textstyle, { color: colors.text }]}>Địa chỉ:</Text>
                                     <TextInput
-                                        style={styles.input}
+                                        style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text }]}
                                         placeholder="Nhập địa chỉ"
+                                        placeholderTextColor={colors.placeholder}
                                         value={values.address}  
                                         onChangeText={handleChange('address')}  
                                         onBlur={handleBlur('address')}  
                                     />
                                 {touched.address && errors.address && (
-                                    <Text style={{ color: 'red', marginLeft: 10 }}>{errors.address}</Text>
+                                    <Text style={styles.errorText}>{errors.address}</Text>
                                 )}
 
 
-                                <TouchableOpacity style={styles.signUpBtn} onPress={handleSubmit}>
-                                    <Text style={styles.signUpText}>Lưu thông tin</Text>
+                                <TouchableOpacity style={[styles.signUpBtn, { backgroundColor: colors.primary }]} onPress={handleSubmit}>
+                                    <Text style={[styles.signUpText, { color: colors.buttonText }]}>Lưu thông tin</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -193,15 +211,15 @@ const AddContactScreen = () => {
                 </Formik>
                 <Modal visible={showImageModal} transparent animationType="slide" onRequestClose={() => setShowImageModal(false)}>
                     <View style={styles.modalOverlay}>
-                        <View style={styles.modalContent}>
+                        <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
                             <TouchableOpacity style={styles.modalOption} onPress={() => handlePickImage('library')}>
-                                <Text style={styles.modalText}>Chọn ảnh từ thiết bị</Text>
+                                <Text style={[styles.modalText, { color: colors.text }]}>Chọn ảnh từ thiết bị</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.modalOption} onPress={() => handlePickImage('camera')}>
-                                <Text style={styles.modalText}>Chụp ảnh</Text>
+                                <Text style={[styles.modalText, { color: colors.text }]}>Chụp ảnh</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.modalCancel} onPress={() => setShowImageModal(false)}>
-                                <Text style={styles.modalCancelText}>Hủy</Text>
+                                <Text style={[styles.modalCancelText, { color: colors.subText }]}>Hủy</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -220,25 +238,25 @@ const styles = StyleSheet.create({
 
     container: {
         flex: 1,
-        backgroundColor: '#f0f2f5',
         justifyContent: 'center',
         alignItems: 'center',
         paddingTop: 0,
+        width: '100%',
     },
 
     header: {
         flex: 1,
         alignItems: 'center',  //căn trục chéo
         justifyContent: 'center',  //căn các phần con theo trục chính
-        marginTop: 50,
-        marginBottom: 50,
+        marginTop: 20,
+        marginBottom: 5,
+        paddingHorizontal: 50,
     },
 
     forminput:{
         flex: 3,
         width: '100%',
-        paddingHorizontal: 20,
-
+        paddingHorizontal: 40,
     },
 
 
@@ -247,23 +265,21 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#ccd0d5',
+        borderColor: '#ccc',
         borderRadius: 13,
         paddingHorizontal: 8, 
-        height: 44,  
-        backgroundColor: '#f5f6fa'
+        height: 44
     },
 
     input: {
-        backgroundColor: '#f5f6fa',
+        width: '100%',
         borderRadius: 13,
         borderWidth: 1,
-        borderColor: '#ccd0d5',
-        paddingHorizontal: 20,
+        paddingHorizontal: 16,
         fontSize: 16,
-        color: '#1c1e21',
         height: 44,
-        
+        textAlign: 'left',
+        marginBottom: 5,
     },
 
     avatarImage: {
@@ -277,7 +293,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         paddingVertical: 8,
         borderRadius: 20,
-        backgroundColor: '#7a8a9f',
         marginTop: 6,
         alignItems: 'center',
         justifyContent: 'center'
@@ -291,8 +306,12 @@ const styles = StyleSheet.create({
         paddingVertical: 6,
     },
 
+    errorText: {
+        color: 'red',
+        marginLeft: 10,
+    },
+
     addPhotoText: {
-        color: '#fff',
         fontWeight: '600',
         marginLeft: 6,
     },
@@ -304,7 +323,6 @@ const styles = StyleSheet.create({
     },
 
     modalContent: {
-        backgroundColor: '#fff',
         padding: 16,
         borderTopLeftRadius: 12,
         borderTopRightRadius: 12,
@@ -316,7 +334,6 @@ const styles = StyleSheet.create({
 
     modalText: {
         fontSize: 16,
-        color: '#111',
     },
 
     modalCancel: {
@@ -325,8 +342,7 @@ const styles = StyleSheet.create({
     },
 
     modalCancelText: {
-        textAlign: 'center',
-        color: '#888',
+        textAlign: 'center'
     },
 
     backBtn: {
@@ -335,12 +351,12 @@ const styles = StyleSheet.create({
         top: 40,
         zIndex: 10,
         padding: 6,
+        paddingTop: 0
     },
 
     card: {
         width: '95%', 
         maxWidth: 400,
-        backgroundColor: '#fff',
         borderRadius: 10,
         padding: 24,
         shadowColor: '#000',
@@ -356,14 +372,11 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         textAlign: 'left', //Căn trái
-        color: '#1c1e21',
         marginBottom: 4,
         marginTop: 20,
-        
     },
     subtitle: {
         fontSize: 15,
-        color: '#606770',
         textAlign: 'center',
         marginBottom: 16,
     },
@@ -381,7 +394,6 @@ const styles = StyleSheet.create({
 
     label: {
         fontSize: 16,
-        color: '#606770',
         flex: 1,
         height: 44,
         textAlignVertical: 'center',
@@ -395,12 +407,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#ccd0d5',
+        
         borderRadius: 13,
         justifyContent: 'space-between',
         width: 120,
         paddingHorizontal: 6,
-        backgroundColor: '#f5f6fa',
+        
         },
 
     picker2: {
@@ -409,57 +421,46 @@ const styles = StyleSheet.create({
 
     picker: {
         flex: 1,
-        backgroundColor: '#f5f6fa',
         borderRadius: 13,
         borderWidth: 1,
-        borderColor: '#ccd0d5',
         paddingVertical: 1,
         alignItems: 'center',
         marginHorizontal: 1,
     },
     dropdown: {
         flex: 1,
-        backgroundColor: '#f5f6fa',
         borderRadius: 6,
         borderWidth: 1,
-        borderColor: '#ccd0d5',
         paddingVertical: 10,
         alignItems: 'center',
         marginHorizontal: 4,
     },
     dropdownText: {
-        fontSize: 16,
-        color: '#1c1e21',
+        fontSize: 16
     },
     radioBtn: {
         flex: 1,
-        backgroundColor: '#f5f6fa',
         borderRadius: 6,
         borderWidth: 1,
-        borderColor: '#ccd0d5',
         paddingVertical: 10,
         alignItems: 'center',
         marginHorizontal: 4,
     },
     radioText: {
-        fontSize: 16,
-        color: '#1c1e21',
+        fontSize: 16
     },
     signUpBtn: {
-        backgroundColor: '#42b72a',
         borderRadius: 20,
         paddingVertical: 12,
         alignItems: 'center',
-        marginTop: 20,
+        marginTop: 30,
         marginBottom: 8,
     },
     signUpText: {
-        color: '#fff',
         fontWeight: 'bold',
         fontSize: 18,
     },
     loginLink: {
-        color: '#1877f2',
         textAlign: 'center',
         marginTop: 8,
         fontSize: 16,
@@ -468,7 +469,6 @@ const styles = StyleSheet.create({
     scrollContent: {
         flexGrow: 1,
         justifyContent: 'center',
-        alignItems: 'center',
         paddingVertical: 32,
     },
 })

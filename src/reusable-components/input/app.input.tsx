@@ -1,4 +1,5 @@
 import { APP_COLOR } from '../../utils/constants/constants';
+import { useTheme } from '../theme/themeContext';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { forwardRef, useState } from "react";
 import { KeyboardTypeOptions, Platform, ReturnKeyTypeOptions, StyleProp, StyleSheet, Text, TextInput, View, ViewStyle } from "react-native";
@@ -29,6 +30,7 @@ interface IProps {
 
 const AppInput = forwardRef<TextInput, IProps>((props, ref) => {  //forwardRef: chuyển tiếp ref từ component cha đến component con
     const [isFocused, setIsFocused] = useState<boolean>(false);
+    const { colors } = useTheme();
     const [isShowPassword, setIsShowPassword] = useState<boolean>(false);
     const { title, keyboardType, secureTextEntry = false,
         value, setValue, onChangeText, onBlur,
@@ -42,7 +44,7 @@ const AppInput = forwardRef<TextInput, IProps>((props, ref) => {  //forwardRef: 
             {title && (
                 <Text style={[
                     styles.label,
-                    { color: textColor }
+                    { color: textColor || colors.text }
                 ]}>
                     {title}
                 </Text>
@@ -61,9 +63,10 @@ const AppInput = forwardRef<TextInput, IProps>((props, ref) => {  //forwardRef: 
                     }}
                     keyboardType={keyboardType}
                     placeholder={placeholder}
-                    placeholderTextColor="#65676B"
+                    placeholderTextColor={colors.placeholder}
                     style={[
                         styles.input,
+                        { borderColor: isFocused ? colors.primary : colors.border, backgroundColor: colors.inputBackground, color: textColor || colors.text },
                         isFocused && styles.inputFocused,
                         multiline && { height: 100, textAlignVertical: 'top' }
                     ]}
@@ -79,7 +82,7 @@ const AppInput = forwardRef<TextInput, IProps>((props, ref) => {  //forwardRef: 
                         style={styles.eye}
                         name={isShowPassword ? "eye" : "eye-slash"}
                         size={18}
-                        color={"#65676B"}
+                        color={colors.subText}
                         onPress={() => setIsShowPassword(!isShowPassword)}
                     />
                 }
@@ -108,13 +111,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15,
         paddingVertical: 15,
         borderRadius: 15,
-        backgroundColor: APP_COLOR.WHITE,
         fontSize: 16,
-        color: APP_COLOR.BLACK,
     },
     inputFocused: {
-        borderColor: APP_COLOR.BLACK,
-        backgroundColor: APP_COLOR.WHITE,
     },
     eye: {
         position: 'absolute',
