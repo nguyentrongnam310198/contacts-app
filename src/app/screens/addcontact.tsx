@@ -50,7 +50,8 @@ const AddContactScreen = () => {
         name: '',
         phonenumber: '',
         email: '',
-        address: ''
+        address: '',
+        workplace: ''
     };
 
     //==Định nghĩa quy tắc kiểm tra dữ liệu (validate) cho từng trường==
@@ -67,6 +68,7 @@ const AddContactScreen = () => {
         
         email: Yup.string().email('Email không hợp lệ').required('Vui lòng nhập email'),
         address: Yup.string().required('Vui lòng nhập địa chỉ'),
+        workplace: Yup.string().required('Vui lòng nhập nơi làm việc'),
     });
 
 
@@ -99,6 +101,7 @@ const AddContactScreen = () => {
                             phonenumber: values.phonenumber || '',
                             email: values.email || '',
                             address: (values as any).adddress || (values as any).address || '',
+                            workplace: (values as any).workplace || '',
                             avatar: avatarUri || null,
                         };
                         try {
@@ -201,6 +204,18 @@ const AddContactScreen = () => {
                                     <Text style={styles.errorText}>{errors.address}</Text>
                                 )}
 
+                                    <Text style={[styles.textstyle, { color: colors.text }]}>Nơi làm việc:</Text>
+                                    <TextInput
+                                        style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text }]}
+                                        placeholder="Nhập nơi làm việc"
+                                        placeholderTextColor={colors.placeholder}
+                                        value={(values as any).workplace}
+                                        onChangeText={handleChange('workplace')}
+                                        onBlur={handleBlur('workplace')}
+                                    />
+                                {(touched as any).workplace && (errors as any).workplace && (
+                                    <Text style={styles.errorText}>{(errors as any).workplace}</Text>
+                                )}
 
                                 <TouchableOpacity style={[styles.signUpBtn, { backgroundColor: colors.primary }]} onPress={handleSubmit}>
                                     <Text style={[styles.signUpText, { color: colors.buttonText }]}>Lưu thông tin</Text>

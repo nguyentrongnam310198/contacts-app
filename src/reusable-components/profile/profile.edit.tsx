@@ -30,7 +30,7 @@ const EditProfileForm = ({ user, onSave, onCancel, colors }: EditProfileFormProp
         const parts = dateString.split('/');
         // Lưu ý: Tháng trong JS Date bắt đầu từ 0
         if (parts.length === 3) {
-            return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+            return new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
         }
         return new Date();
     };
@@ -108,7 +108,7 @@ const EditProfileForm = ({ user, onSave, onCancel, colors }: EditProfileFormProp
                             />
                         </View>
 
-                        <View style={{ position: 'absolute', right: 15, top: 43 }}>
+                        <View style={styles.calendarIcon}>
                             <MaterialIcons
                                 name="calendar-month"
                                 size={24}
@@ -148,7 +148,7 @@ const EditProfileForm = ({ user, onSave, onCancel, colors }: EditProfileFormProp
                             title={t('common.save')}
                             onPress={() => handleSubmit()}
                             backgroundColor={colors.primary}
-                            textStyle={{ fontWeight: 'bold', color: colors.buttonText }}
+                            textStyle={styles.buttonText}
                         />
                         <AppButton
                             title={t('common.cancel')}
@@ -183,6 +183,11 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
         color: colors.subText,
         borderColor: colors.border,
         opacity: 0.7
+    },
+    calendarIcon: {
+        position: 'absolute',
+        right: 15,
+        top: 43
     },
     buttonGroup: {
         flexDirection: 'row',

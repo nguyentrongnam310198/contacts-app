@@ -29,20 +29,20 @@ const HomeScreen = () => {
         const fetchUsers = async () => {
             // Chỉ fetch nếu chưa fetch và contacts rỗng
             if (hasFetched || contacts.length > 0) {
-                console.log('[Home] Skip fetch - already have data');
+                // console.log('[Home] Skip fetch - already have data');
                 return;
             }
 
             try {
-                console.log('[Home] Fetching users from API...');
+                // console.log('[Home] Fetching users from API...');
                 const response = await axios.get('https://jsonplaceholder.typicode.com/users', { timeout: 5000 });
                 let apiUsersData = Array.isArray(response?.data) ? response.data : [];
-                console.log('[Home] API users:', apiUsersData);
+                // console.log('[Home] API users:', apiUsersData);
                 setContacts(apiUsersData);
                 setHasFetched(true);  // Đánh dấu đã fetch
                 setError(null);
             } catch (err: any) {
-                console.log('[Home] API error:', err);
+                // console.log('[Home] API error:', err);
                 setError(err.message || 'Lỗi khi tải dữ liệu');
             }
         };
