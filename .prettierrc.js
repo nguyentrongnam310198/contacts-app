@@ -1,5 +1,10 @@
 module.exports = {
-  arrowParens: 'avoid',
-  singleQuote: true,
-  trailingComma: 'all',
+  
+  "semi": true,
+  "singleQuote": true,
+  "trailingComma": "all",
+  "tabWidth": 2,
+  "printWidth": 100,
+  "endOfLine": "auto" // 👈 FIX TOANG WINDOWS
+
 };

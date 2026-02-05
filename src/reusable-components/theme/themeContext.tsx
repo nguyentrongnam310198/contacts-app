@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { APP_COLOR } from '../../utils/constants/constants';
 type ThemeType = 'light' | 'dark';
 
+//***Định nghĩa kiểu màu sắc cho theme
 export interface ThemeColors {
     background: string;
     text: string;
@@ -17,16 +18,18 @@ export interface ThemeColors {
     placeholder: string; // Thêm màu placeholder
 }
 
+//***Định nghĩa kiểu Context (kiểu dữ liệu) cho theme
 interface ThemeContextType {
     theme: ThemeType;
     toggleTheme: () => void;
     colors: ThemeColors;
 }
 
+//***Tạo ống dẫn dữ liệu global cho theme (Context)
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 //***Light Theme
-const lightColors: ThemeColors = {  //instance của ThemeColors để dùng từng Screen
+const lightColors: ThemeColors = {  //instance của ThemeColors để dùng từng Screen (kế thừa ThemeColors)
     background: '#F2F2F7',     
     text: '#000000',
     subText: '#6C6C6C',
@@ -54,30 +57,34 @@ const darkColors: ThemeColors = {
 };
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-    const systemScheme = useColorScheme();  //useColorScheme(); hàm trả về giao diện của user (light hoặc dark)
+    const systemScheme = useColorScheme();  //useColorScheme(); hàm trả về giao diện của user (light hoặc dark) - thư viện react-native cung cấp sẵn hàm này
+                                                //biến này lưu theme hệ thống của user
     const [theme, setTheme] = useState<ThemeType>('light');
 
+    //hàm lấy theme từ AsyncStorage khi app khởi động
     useEffect(() => {
-        const loadTheme = async () => {  //hàm lấy theme từ AsyncStorage
+        const loadTheme = async () => {  
             const savedTheme = await AsyncStorage.getItem('app_theme');  //lấy theme đã lưu gán vào savedTheme
             if (savedTheme === 'light' || savedTheme === 'dark') {
                 setTheme(savedTheme);
             } else if (systemScheme === 'light' || systemScheme === 'dark') {
                 setTheme(systemScheme);
-            }
+            }  //==> nếu không có theme lưu trong AsyncStorage thì lấy theme hệ thống
         };
-        loadTheme();
-    }, [systemScheme]);  //---> hàm này để đồng bộ giao diện app với giao diện hệ thống (điện thoại user)
+        loadTheme();  //unmount
+    }, [systemScheme]);  //==> hàm này để đồng bộ giao diện app với giao diện hệ thống (điện thoại user)
 
-    //==Hàm chuyển đổi theme==
+    //***Hàm chuyển đổi theme
     const toggleTheme = async () => {  
-        const newTheme = theme === 'light' ? 'dark' : 'light';  //nếu theme hiện tại là light thì chuyển sang dark, ngược lại chuyển sang light
+        const newTheme = theme === 'light' ? 'dark' : 'light';  //biểu thức chính quy 
         setTheme(newTheme);
         await AsyncStorage.setItem('app_theme', newTheme);  //lưu theme mới vào AsyncStorage
     };
 
-    const colors = theme === 'light' ? lightColors : darkColors;  //nếu theme là light thì lấy lightColors, ngược lại lấy darkColors
-
+    const colors = theme === 'light' ? lightColors : darkColors;  //nếu theme === light = True thì lấy lightColors, ngược lại lấy darkColors
+                                                                  //ờ màn hình: ThemeProvider --> truyền colors này xuống các component con thông qua Context
+                                                                  //màn cha sẽ gọi bằng cách: const { colors } = useTheme();
+                                                                        //ví dụ: color.text, colors.background,...
     return (
         <ThemeContext.Provider value={{ theme, toggleTheme, colors }}>  
             {children} 

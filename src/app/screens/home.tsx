@@ -86,7 +86,7 @@ const HomeScreen = () => {
             <Text style={[styles.logo, { color: colors.primary }]}>LIÊN HỆ</Text>
             <View style={styles.headerIcons}>
                 <Pressable onPress={() => toggleTheme()} style={styles.themeToggle}>
-                    <Ionicons name={theme === 'light' ? 'moon-outline' : 'sunny-outline'} size={30} color={colors.subText} />
+                    <Ionicons name={theme === 'light' ? 'sunny' : 'sunny-outline'} size={30} color={colors.subText} />
                 </Pressable>
                 <Pressable onPress={() => navigation.navigate('addcontact')}>
                     <Ionicons name="person-add-outline" size={30} color={colors.subText} style={styles.headerIcon} />
